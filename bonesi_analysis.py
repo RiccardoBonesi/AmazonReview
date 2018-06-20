@@ -238,16 +238,6 @@ def data_preprocessing(df):
         to_int = [vocabulary_to_int[word] for word in reviews_cleaned[i].split()]
         reviews_to_int.append(to_int)
 
-
-
-
-
-
-
-
-
-
-
     print("END PREPROCESSING")
 
 
