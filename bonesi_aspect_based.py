@@ -38,6 +38,8 @@ from spacy.lang.en import English
 parser = English()
 
 import nltk
+from nltk.util import ngrams
+
 
 # nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
@@ -183,6 +185,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 
 def get_lemma2(word):
     return WordNetLemmatizer().lemmatize(word)
+
 def tokenize(text):
     lda_tokens = []
     tokens = parser(text)
@@ -216,7 +219,7 @@ def prepare_text_for_lda(text):
 
 
 
-def aspect2(df):
+def aspect2(df, productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
     reviews = df.cleanedtext.values
@@ -225,6 +228,8 @@ def aspect2(df):
     for r in reviews:
         tokens = prepare_text_for_lda(r)
         print(tokens)
+        for doc in tokens:
+            tokens[doc] = tokens[doc] + ["_".join(w) for w in ngrams(tokens[doc], 2)]
         text_data.append(tokens)
 
     # LDA with Gensim
@@ -253,8 +258,10 @@ def aspect2(df):
 
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=False)
-    pyLDAvis.show(lda_display10)
-    pyLDAvis.save_html(lda_display10, 'lda_display10')
+    # pyLDAvis.show(lda_display10)
+    print("saving LDA...")
+    pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId + '.html')
+    print("LDA saved: " + productId)
 
 
 
@@ -293,6 +300,9 @@ if __name__ == "__main__":
     # # sns.distplot(df['polarity'])
     # df.to_csv("cleanedTextCSV.csv", sep='\t', encoding='utf-8')
     df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
-    df = df.loc[df['productid'] == "B000DZFMEQ"]
     df = df.dropna()
-    aspect2(df)
+
+    df1 = df.loc[df['productid'] == "B000DZFMEQ"]
+    aspect2(df1, "B000DZFMEQ")
+    # df2 = df.loc[df['productid'] == "B00813GRG4"]
+    # aspect2(df2, "B00813GRG4")
