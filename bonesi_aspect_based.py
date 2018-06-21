@@ -228,8 +228,11 @@ def aspect2(df, productId):
     for r in reviews:
         tokens = prepare_text_for_lda(r)
         print(tokens)
-        for doc in tokens:
-            tokens[doc] = tokens[doc] + ["_".join(w) for w in ngrams(tokens[doc], 2)]
+        bigram = list(nltk.bigrams(tokens))
+        tokens = []
+
+        for i in bigram:
+            tokens.append((''.join([w + ' ' for w in i])).strip())
         text_data.append(tokens)
 
     # LDA with Gensim
@@ -243,9 +246,10 @@ def aspect2(df, productId):
 
     # We are asking LDA to find 20 topics in the data
     NUM_TOPICS = 10
+
     ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=NUM_TOPICS, id2word=dictionary, passes=15)
     ldamodel.save('model5.gensim')
-    topics = ldamodel.print_topics(num_words=4)
+    topics = ldamodel.print_topics(num_words=6)
     for topic in topics:
         print(topic)
 
@@ -258,10 +262,10 @@ def aspect2(df, productId):
 
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=False)
-    # pyLDAvis.show(lda_display10)
-    print("saving LDA...")
-    pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId + '.html')
-    print("LDA saved: " + productId)
+    pyLDAvis.show(lda_display10)
+    # print("saving LDA...")
+    # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
+    # print("LDA saved: " + productId)
 
 
 
@@ -302,7 +306,7 @@ if __name__ == "__main__":
     df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     df = df.dropna()
 
-    df1 = df.loc[df['productid'] == "B000DZFMEQ"]
-    aspect2(df1, "B000DZFMEQ")
+    df1 = df.loc[df['productid'] == "B007M83302"]
+    aspect2(df1, "B007M83302")
     # df2 = df.loc[df['productid'] == "B00813GRG4"]
     # aspect2(df2, "B00813GRG4")
