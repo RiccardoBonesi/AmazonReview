@@ -27,7 +27,7 @@ from wordcloud import WordCloud
 from textblob import TextBlob, Word
 import matplotlib.pyplot as plt
 import seaborn as sns
-from stop_words import get_stop_words
+
 
 
 
@@ -207,14 +207,15 @@ if __name__  == "__main__":
 
     sentiment_scores = list()
     df = df.loc[df['productid'] == "B000DZFMEQ"]
-    filtered_words = [word for word in word_list if word not in stopwords.words('english')]
+    stop = stopwords.words('english')
+    df['nostop'] = df['cleanedtext'].apply(lambda x: ' '.join([word for word in x.split() if word not in (stop)]))
 
     i = 0
-    for sentence in df.cleanedtext:
+    for sentence in df.nostop:
         line = TextBlob(sentence)
         sentiment_scores.append(line.sentiment.polarity)
         print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
-    comments = TextBlob(' '.join(df.cleanedtext))
+    comments = TextBlob(' '.join(df.nostop))
 
     cleaned = list()
     for phrase in comments.noun_phrases:
@@ -263,6 +264,7 @@ if __name__  == "__main__":
         count = 0
         for word in phrase.split():
             if word not in stopwords.words('english'):
+
                 count += comments.words.count(word)
 
         print(phrase + ": " + str(count))
@@ -292,7 +294,7 @@ if __name__  == "__main__":
     for f in frequent_features:
         # For each comment
         absa_list[f] = list()
-        for comment in df.cleanedtext:
+        for comment in df.nostop:
             blob = TextBlob(comment)
             # For each sentence of the comment
             for sentence in blob.sentences:
