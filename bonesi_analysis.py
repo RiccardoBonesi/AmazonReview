@@ -1,3 +1,4 @@
+import IPython as IPython
 import pandas as pd
 import numpy as np
 from collections import namedtuple, Counter
@@ -33,6 +34,9 @@ from scipy.sparse import hstack
 from gensim import corpora
 import pickle
 import gensim
+
+import pyLDAvis.gensim
+import IPython
 
 import os
 java_path = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
@@ -223,6 +227,12 @@ def vocabulary_reduction(reviews, labels, min_freq=10, polarity_cut_off=0.1):
     return reviews_cleaned
 
 
+################################
+##################################
+#################################
+###################################
+
+
 
 
 
@@ -284,7 +294,15 @@ def data_preprocessing(df):
     print("END PREPROCESSING")
 
 
-    ############################    ASPECT BASED   ################################################################
+
+
+
+
+    ############################
+    ##### ASPECT BASED   ########
+    #############################
+    # ############################
+
 
 #Selecting only 20 most common aspect.
 def get_most_common_aspect(opinion_list):
@@ -461,7 +479,7 @@ parser = English()
 
 import nltk
 
-nltk.download('wordnet')
+# nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
 
 
@@ -494,7 +512,7 @@ def tokenize(text):
 
 
 
-nltk.download('stopwords')
+# nltk.download('stopwords')
 en_stop = set(nltk.corpus.stopwords.words('english'))
 
 
@@ -519,6 +537,7 @@ def prepare_text_for_lda(text):
 
 
 def aspect2(df_train, df_test):
+    # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
     reviews = df_train.text.values
 
@@ -536,13 +555,26 @@ def aspect2(df_train, df_test):
     dictionary.save('dictionary.gensim')
 
 
-    # We are asking LDA to find 5 topics in the data
-    NUM_TOPICS = 20
-    ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=NUM_TOPICS, id2word=dictionary, passes=15)
-    ldamodel.save('model5.gensim')
-    topics = ldamodel.print_topics(num_words=4)
-    for topic in topics:
-        print(topic)
+    # We are asking LDA to find 20 topics in the data
+    # NUM_TOPICS = 20
+    # ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=NUM_TOPICS, id2word=dictionary, passes=15)
+    # ldamodel.save('model5.gensim')
+    # topics = ldamodel.print_topics(num_words=4)
+    # for topic in topics:
+    #     print(topic)
+
+    dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
+    corpus = pickle.load(open('corpus.pkl', 'rb'))
+    lda = gensim.models.ldamodel.LdaModel.load('model5.gensim')
+
+    lda_display = pyLDAvis.gensim.prepare(lda, corpus, dictionary, sort_topics=False)
+    pyLDAvis.display(lda_display)
+
+    lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
+    lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=False)
+    pyLDAvis.display(lda_display10)
+    pyLDAvis.show(lda_display10)
+    pyLDAvis.save_html(lda_display10)
 
 
 
@@ -556,8 +588,9 @@ def aspect2(df_train, df_test):
 
 if __name__ == "__main__":
     df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
-    exploratory_data_analysis(df)
-    data_preprocessing(df)
+    # df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
+    # exploratory_data_analysis(df)
+    # data_preprocessing(df)
     df_train = df = df.loc[df['productid'] == "B000DZFMEQ"]
     df_test = df[201:250]
     # aspect_based(df_train, df_test)
