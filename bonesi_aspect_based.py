@@ -1,48 +1,8 @@
-import IPython as IPython
 import pandas as pd
-import numpy as np
-from collections import namedtuple, Counter
-# import tensorflow as tf
-from string import punctuation
-import matplotlib.pyplot as plt
-import seaborn as sns
-from wordcloud import WordCloud
-# from sklearn.metrics import roc_curve, auc, classification_report
-from nltk.tag.stanford import StanfordPOSTagger as POS_Tag
-from nltk import word_tokenize
-from sklearn.externals import joblib
-import nltk
-from sklearn.feature_extraction.text import CountVectorizer
-from nltk import word_tokenize
-from nltk.stem import WordNetLemmatizer
-
-from sklearn.feature_extraction.text import CountVectorizer
-from nltk import word_tokenize
-from nltk.stem import WordNetLemmatizer
-
-
-from sklearn.externals import joblib
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction import DictVectorizer
-from sklearn.linear_model import SGDClassifier
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.naive_bayes import MultinomialNB
-from sklearn import svm
-
-from scipy.sparse import hstack
-
 from gensim import corpora
 import pickle
 import gensim
-
 import pyLDAvis.gensim
-import IPython
-
-import os
-java_path = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
-os.environ['JAVAHOME'] = java_path
-
-
 
 from spacy.lang.en import English
 parser = English()
@@ -51,6 +11,14 @@ import nltk
 
 # nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
+
+
+import os
+java_path = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
+os.environ['JAVAHOME'] = java_path
+
+
+
 
 
 def get_lemma(word):
@@ -97,10 +65,10 @@ def prepare_text_for_lda(text):
 
 
 
-def aspect2(df_train, df_test):
+def aspect2(df):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
-    reviews = df_train.text.values
+    reviews = df.text.values
 
     text_data = []
     for r in reviews:
@@ -144,8 +112,7 @@ def aspect2(df_train, df_test):
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
-    # df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
-    df_train = df = df.loc[df['productid'] == "B000DZFMEQ"]
-    df_test = df[201:250]
-    aspect2(df_train, df_test)
+    # df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
+    df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
+    df = df.loc[df['productid'] == "B000DZFMEQ"]
+    aspect2(df)
