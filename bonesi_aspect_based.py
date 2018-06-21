@@ -133,9 +133,9 @@ def aspect2(df_train, df_test):
 
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=False)
-    pyLDAvis.display(lda_display10)
-    pyLDAvis.show(lda_display10)
-    pyLDAvis.save_html(lda_display10)
+    # pyLDAvis.show(lda_display10)
+    pyLDAvis.save_html(lda_display10, 'lda_display10')
+
 
 
     print("END ASPECT2")
