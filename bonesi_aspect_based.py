@@ -245,23 +245,33 @@ def aspect2(df, productId):
 
 
     # We are asking LDA to find 20 topics in the data
-    NUM_TOPICS = 10
+    NUM_TOPICS = 5
 
-    ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics=NUM_TOPICS, id2word=dictionary, passes=15)
+    ldamodel = gensim.models.ldamodel.LdaModel(corpus,alpha="asymmetric", num_topics=NUM_TOPICS, id2word=dictionary, passes=50, iterations=1000)
     ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
+
+    x = ldamodel.show_topics(num_topics=NUM_TOPICS, num_words=15, formatted=False)
+    topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in x]
+
+    # Below Code Prints Only Words
+
+    sentiment_scores = list()
+
+    i = 0
+    for topic, words in topics_words:
+        print(" ".join(words))
+        line = TextBlob(" ".join(words))
+        sentiment_scores.append(line.sentiment.polarity)
+        print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
+
     for topic in topics:
         print(topic)
 
     dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
     corpus = pickle.load(open('corpus.pkl', 'rb'))
-    lda = gensim.models.ldamodel.LdaModel.load('model5.gensim')
-
-    lda_display = pyLDAvis.gensim.prepare(lda, corpus, dictionary, sort_topics=False)
-    pyLDAvis.display(lda_display)
-
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
-    lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=False)
+    lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
     pyLDAvis.show(lda_display10)
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
@@ -305,8 +315,11 @@ if __name__ == "__main__":
     # df.to_csv("cleanedTextCSV.csv", sep='\t', encoding='utf-8')
     df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     df = df.dropna()
-
-    df1 = df.loc[df['productid'] == "B007M83302"]
-    aspect2(df1, "B007M83302")
+    asd = df.groupby('productid').score.mean().reset_index()
+    asd2 = df.productid.value_counts()
+    asd3 = asd.merge(asd2.to_frame(),left_on='productid', right_index=True)
+    asd4 = asd3.sort_values('score')
+    df1 = df.loc[df['productid'] == "B001E96JY2"]
+    aspect2(df1, "B001E96JY2")
     # df2 = df.loc[df['productid'] == "B00813GRG4"]
     # aspect2(df2, "B00813GRG4")
