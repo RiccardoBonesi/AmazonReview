@@ -235,7 +235,7 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     c_v = []
     lm_list = []
     for num_topics in range(1, limit):
-        lm = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary)
+        lm = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary, iterations=50)
         lm_list.append(lm)
         cm = gensim.models.ldamodel.CoherenceModel(model=lm, texts=texts, dictionary=dictionary, coherence='c_v')
         c_v.append(cm.get_coherence())
@@ -279,14 +279,16 @@ def aspect2(df, productId):
 
 
     # Finding out the optimal number of topics
-    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
+    np.random.seed(50)
+    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=6)
+    max_value = max(c_v)
+    max_index = c_v.index(max_value)
+    NUM_TOPICS = max_index + 1
 
 
 
-    # We are asking LDA to find 20 topics in the data
-    NUM_TOPICS = 5
-
-    ldamodel = gensim.models.ldamodel.LdaModel(corpus,alpha="asymmetric", num_topics=NUM_TOPICS, id2word=dictionary, passes=50, iterations=1000)
+    ldamodel = gensim.models.ldamodel.LdaModel(corpus, alpha="auto", num_topics=NUM_TOPICS,
+                                               id2word=dictionary, iterations=50)
     ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
 
