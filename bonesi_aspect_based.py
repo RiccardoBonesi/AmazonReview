@@ -217,6 +217,40 @@ def prepare_text_for_lda(text):
     return tokens
 
 
+def evaluate_graph(dictionary, corpus, texts, limit):
+    """
+    Function to display num_topics - LDA graph using c_v coherence
+
+    Parameters:
+    ----------
+    dictionary : Gensim dictionary
+    corpus : Gensim corpus
+    limit : topic limit
+
+    Returns:
+    -------
+    lm_list : List of LDA topic models
+    c_v : Coherence values corresponding to the LDA model with respective number of topics
+    """
+    c_v = []
+    lm_list = []
+    for num_topics in range(1, limit):
+        lm = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary)
+        lm_list.append(lm)
+        cm = gensim.models.ldamodel.CoherenceModel(model=lm, texts=texts, dictionary=dictionary, coherence='c_v')
+        c_v.append(cm.get_coherence())
+
+    # Show graph
+    x = range(1, limit)
+    plt.plot(x, c_v)
+    plt.xlabel("num_topics")
+    plt.ylabel("Coherence score")
+    plt.legend(("c_v"), loc='best')
+    plt.show()
+
+    return lm_list, c_v
+
+
 
 
 def aspect2(df, productId):
@@ -242,6 +276,11 @@ def aspect2(df, productId):
     corpus = [dictionary.doc2bow(text) for text in text_data]
     pickle.dump(corpus, open('corpus.pkl', 'wb'))
     dictionary.save('dictionary.gensim')
+
+
+    # Finding out the optimal number of topics
+    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
+
 
 
     # We are asking LDA to find 20 topics in the data
@@ -272,10 +311,18 @@ def aspect2(df, productId):
     corpus = pickle.load(open('corpus.pkl', 'rb'))
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
+
+
     pyLDAvis.show(lda_display10)
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
+
+
+
+
+
+
 
 
 

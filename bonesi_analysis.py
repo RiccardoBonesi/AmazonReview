@@ -67,18 +67,18 @@ def exploratory_data_analysis(df):
 
 
     ## opinion distribution
-    # ax = plt.axes()
-    # sns.countplot(df.opinion, ax=ax)
-    # ax.set_title('opinion Positive vs Negative Distribution')
-    # plt.show()
+    ax = plt.axes()
+    sns.countplot(df.opinion, ax=ax)
+    ax.set_title('Sentiment Positive vs Negative Distribution')
+    plt.show()
 
     ## userid distribution
     # ax = plt.axes()
     # sns.countplot(df.userid, ax=ax)
     # ax.set_title('UserId Distribution')
     # plt.show()
-
-    ## productid distribution
+    #
+    # ## productid distribution
     # ax = plt.axes()
     # sns.countplot(df.userid, ax=ax)
     # ax.set_title('ProductId Distribution')
@@ -171,6 +171,7 @@ def exploratory_data_analysis(df):
     ax = plt.axes()
     ax.set_title('Word Cloud with the Lowest Positive/Negative Ratio')
     plt.show()
+
 
     print("END EXPLORATORY ANALYSIS")
 
@@ -589,9 +590,9 @@ def aspect2(df_train, df_test):
 if __name__ == "__main__":
     df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
     # df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
-    # exploratory_data_analysis(df)
+    exploratory_data_analysis(df)
     # data_preprocessing(df)
-    df_train = df = df.loc[df['productid'] == "B000DZFMEQ"]
-    df_test = df[201:250]
-    # aspect_based(df_train, df_test)
-    aspect2(df_train, df_test)
+    # df_train = df = df.loc[df['productid'] == "B000DZFMEQ"]
+    # df_test = df[201:250]
+    # # aspect_based(df_train, df_test)
+    # aspect2(df_train, df_test)
