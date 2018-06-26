@@ -235,7 +235,7 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     c_v = []
     lm_list = []
     for num_topics in range(1, limit):
-        lm = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary, iterations=50)
+        lm = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary, iterations=500)
         lm_list.append(lm)
         cm = gensim.models.ldamodel.CoherenceModel(model=lm, texts=texts, dictionary=dictionary, coherence='c_v')
         c_v.append(cm.get_coherence())
@@ -288,7 +288,7 @@ def aspect2(df, productId):
 
 
     ldamodel = gensim.models.ldamodel.LdaModel(corpus, alpha="auto", num_topics=NUM_TOPICS,
-                                               id2word=dictionary, iterations=50)
+                                               id2word=dictionary, iterations=500)
     ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
 
@@ -319,6 +319,10 @@ def aspect2(df, productId):
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
+
+
+    # TODO: LDA multithread, trovare numero ottimale di iterazioni
+
 
 
 
@@ -362,13 +366,29 @@ if __name__ == "__main__":
     #
     # # sns.distplot(df['polarity'])
     # df.to_csv("cleanedTextCSV.csv", sep='\t', encoding='utf-8')
+
+    # B002QWP89S    629
+    # B007M83302    564
+    # B0013NUGDE    564
+    # B000KV61FC    554
+    # B000PDY3P0    486
+    # B006N3IG4K    455
+    # B003VXFK44    455
+    # B001LG945O    347
+    # B001LGGH40    338
+    # B004ZIER34    330
+    # B005K4Q1VI    324
+    # B008ZRKZSM    310
+
+
+
     df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     df = df.dropna()
     asd = df.groupby('productid').score.mean().reset_index()
     asd2 = df.productid.value_counts()
     asd3 = asd.merge(asd2.to_frame(),left_on='productid', right_index=True)
     asd4 = asd3.sort_values('score')
-    df1 = df.loc[df['productid'] == "B001E96JY2"]
-    aspect2(df1, "B001E96JY2")
+    df1 = df.loc[df['productid'] == "B007M83302"]
+    aspect2(df1, "B007M83302")
     # df2 = df.loc[df['productid'] == "B00813GRG4"]
     # aspect2(df2, "B00813GRG4")
