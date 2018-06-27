@@ -33,32 +33,33 @@ from textblob import TextBlob, Word
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-
 from spacy.lang.en import English
+
 parser = English()
 
 import nltk
 from nltk.util import ngrams
 
-
 # nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
 
-
 import os
+
 java_path = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
 os.environ['JAVAHOME'] = java_path
 
-def label_rate (row):
-   if row['score'] == 1 :
-      return 'negative'
-   if row['score'] == 2 :
-      return 'negative'
-   if row['score'] == 4 :
-      return 'positive'
-   if row['score'] == 5 :
-      return 'positive'
-   return 'neutral'
+
+def label_rate(row):
+    if row['score'] == 1:
+        return 'negative'
+    if row['score'] == 2:
+        return 'negative'
+    if row['score'] == 4:
+        return 'positive'
+    if row['score'] == 5:
+        return 'positive'
+    return 'neutral'
+
 
 def plot_rating(data):
     ax = plt.axes()
@@ -66,10 +67,14 @@ def plot_rating(data):
     ax.set_title('Score Distribution')
     plt.show()
 
+
 def word_count(row):
     return len(re.findall(r'\w+', row))
+
+
 def word_count_log(row):
     return math.log(len(re.findall(r'\w+', row)))
+
 
 def vocabulary_reduction(reviews, labels, min_freq=10, polarity_cut_off=0.1):
     pos_count = Counter()
@@ -122,7 +127,6 @@ def vocabulary_reduction(reviews, labels, min_freq=10, polarity_cut_off=0.1):
 
 
 def data_preprocessing(df):
-
     reviews = df.text
     translator = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
     # reviews.translate(translator)
@@ -139,16 +143,13 @@ def data_preprocessing(df):
     print("")
     print("After: ", reviews_cleaned[0])
 
-
     ### new vocabulary
     vocabulary = set(' '.join(reviews_cleaned).split())
     print("Vocabulary size: ", len(vocabulary))
 
-
     # Vocabulary reduction function to reduce the vocabulary
     # based on min frequency or polarity.
     reviews_cleaned = vocabulary_reduction(reviews_cleaned, labels, min_freq=0, polarity_cut_off=0)
-
 
     # ### TRANSFORM EACH REVIEW INTO A LIST OF INTEGERS
     #
@@ -171,7 +172,6 @@ def data_preprocessing(df):
     return reviews_cleaned
 
 
-
 def get_lemma(word):
     lemma = wn.morphy(word)
     if lemma is None:
@@ -185,6 +185,7 @@ from nltk.stem.wordnet import WordNetLemmatizer
 
 def get_lemma2(word):
     return WordNetLemmatizer().lemmatize(word)
+
 
 def tokenize(text):
     lda_tokens = []
@@ -201,10 +202,8 @@ def tokenize(text):
     return lda_tokens
 
 
-
 # nltk.download('stopwords')
 en_stop = set(nltk.corpus.stopwords.words('english'))
-
 
 
 def prepare_text_for_lda(text):
@@ -251,8 +250,6 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     return lm_list, c_v
 
 
-
-
 def aspect2(df, productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
@@ -277,21 +274,23 @@ def aspect2(df, productId):
     pickle.dump(corpus, open('corpus.pkl', 'wb'))
     dictionary.save('dictionary.gensim')
 
-
     # Finding out the optimal number of topics
     np.random.seed(50)
-    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=6)
-    max_value = max(c_v)
-    max_index = c_v.index(max_value)
-    NUM_TOPICS = max_index + 1
 
-    ldamodel = gensim.models.ldamulticore.LdaMulticore(corpus, alpha="auto", num_topics=NUM_TOPICS,id2word=dictionary, iterations=500)
+    # lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=6)
+    # max_value = max(c_v)
+    # max_index = c_v.index(max_value)
+
+    NUM_TOPICS = 4
+
+    ldamodel = gensim.models.ldamulticore.LdaMulticore(corpus, num_topics=NUM_TOPICS, id2word=dictionary,
+                                                       iterations=500)
     ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
 
     x = ldamodel.show_topics(num_topics=NUM_TOPICS, num_words=15, formatted=False)
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in x]
-
+    print(ldamodel.print_topic(2, 100))
     # Below Code Prints Only Words
 
     sentiment_scores = list()
@@ -308,8 +307,9 @@ def aspect2(df, productId):
 
     for t in range(NUM_TOPICS):
         plt.figure()
-        plt.imshow(WordCloud().generate(ldamodel.get_topic_terms(t, 100)))
+        plt.imshow(WordCloud().generate(ldamodel.print_topic(t, 100)))
         plt.axis("off")
+        plt.title(t)
         plt.show()
 
     dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
@@ -317,31 +317,17 @@ def aspect2(df, productId):
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
 
-
     pyLDAvis.show(lda_display10)
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
 
-
     # TODO: LDA multithread, trovare numero ottimale di iterazioni
-
-
-
-
-
-
-
-
-
 
     print("END ASPECT2")
 
 
-
-
 if __name__ == "__main__":
-
     # df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
     # df['text'] = [BeautifulSoup(text,"html.parser").get_text() for text in df['text']]
     # unique_product = df.productid.unique()
@@ -383,13 +369,11 @@ if __name__ == "__main__":
     # B005K4Q1VI    324
     # B008ZRKZSM    310
 
-
-
     df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     df = df.dropna()
     asd = df.groupby('productid').score.mean().reset_index()
     asd2 = df.productid.value_counts()
-    asd3 = asd.merge(asd2.to_frame(),left_on='productid', right_index=True)
+    asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
     asd4 = asd3.sort_values('score')
     df1 = df.loc[df['productid'] == "B007M83302"]
     aspect2(df1, "B007M83302")
