@@ -1,44 +1,24 @@
-import pandas as pd
-from gensim import corpora
-import pickle
-import gensim
-import pyLDAvis.gensim
-import string
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-import re
 import math
-import absa
-from nltk.corpus import stopwords
-from bs4 import BeautifulSoup
-import pandas
+import pickle
+import re
+import string
 from collections import Counter
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.dummy import DummyClassifier
 from string import punctuation
-from sklearn import svm
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-import nltk
-from nltk import ngrams
-from itertools import chain
-from wordcloud import WordCloud
-from textblob import TextBlob, Word
-import matplotlib.pyplot as plt
-import seaborn as sns
 
+import gensim
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pyLDAvis.gensim
+import seaborn as sns
+from gensim import corpora
 from spacy.lang.en import English
+from textblob import TextBlob
+from wordcloud import WordCloud
 
 parser = English()
 
 import nltk
-from nltk.util import ngrams
 
 # nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
@@ -251,7 +231,7 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     return lm_list, c_v
 
 
-def aspect2(df, productId):
+def aspect2(df):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
     reviews = df.cleanedtext.values
@@ -272,12 +252,11 @@ def aspect2(df, productId):
     #         tokens.append((''.join([w + ' ' for w in i])).strip())
     #     text_data.append(tokens)
 
-
     # LDA with Gensim
     # First, we are creating a dictionary from the data,
     # then convert to bag-of-words corpus and save the dictionary and corpus for future use.
     dictionary = corpora.Dictionary(text_data)
-    dictionary.filter_extremes(no_below=10, no_above=0.2)
+    dictionary.filter_extremes(no_below=0.001, no_above=0.28)
     corpus = [dictionary.doc2bow(text) for text in text_data]
     pickle.dump(corpus, open('corpus.pkl', 'wb'))
     dictionary.save('dictionary.gensim')
@@ -285,7 +264,7 @@ def aspect2(df, productId):
     # Finding out the optimal number of topics
     np.random.seed(50)
 
-    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=6)
+    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
     max_value = max(c_v)
     max_index = c_v.index(max_value)
     NUM_TOPICS = max_index + 1
@@ -341,6 +320,7 @@ def aspect2(df, productId):
 
     print("END ASPECT2")
 
+
 if __name__ == "__main__":
     # df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
     # df['text'] = [BeautifulSoup(text,"html.parser").get_text() for text in df['text']]
@@ -389,7 +369,8 @@ if __name__ == "__main__":
     asd2 = df.productid.value_counts()
     asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
     asd4 = asd3.sort_values('score')
-    df1 = df.loc[df['productid'] == "B007M83302"]
-    aspect2(df1, "B007M83302")
+    df1 = df.loc[
+        (df['productid'] == "B002QWP89S") | (df['productid'] == "B007M83302") | (df['productid'] == "B0013NUGDE") | (df['productid'] == "B000KV61FC")| (df['productid'] == "B000KV61FC")]
+    aspect2(df1)
     # df2 = df.loc[df['productid'] == "B00813GRG4"]
     # aspect2(df2, "B00813GRG4")
