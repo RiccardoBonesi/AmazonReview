@@ -288,12 +288,19 @@ def aspect2(df, productId):
     ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
 
+    value = gensim.models.coherencemodel.CoherenceModel(model=ldamodel, texts=text_data, dictionary=dictionary,
+                                                        coherence='c_v')
+    coherence_lda = value.get_coherence()
+    print('\nCoherence Score: ', coherence_lda)
+
     x = ldamodel.show_topics(num_topics=NUM_TOPICS, num_words=15, formatted=False)
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in x]
     print(ldamodel.print_topic(2, 100))
     # Below Code Prints Only Words
 
     sentiment_scores = list()
+
+    # Compute Coherence Score using c_v
 
     i = 0
     for topic, words in topics_words:
