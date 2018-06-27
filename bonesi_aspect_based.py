@@ -234,7 +234,8 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     c_v = []
     lm_list = []
     for num_topics in range(1, limit):
-        lm = gensim.models.ldamodel.LdaModel(corpus=corpus, num_topics=num_topics, id2word=dictionary, iterations=500)
+        lm = gensim.models.ldamulticore.LdaMulticore(corpus=corpus, num_topics=num_topics, id2word=dictionary,
+                                                     iterations=500)
         lm_list.append(lm)
         cm = gensim.models.ldamodel.CoherenceModel(model=lm, texts=texts, dictionary=dictionary, coherence='c_v')
         c_v.append(cm.get_coherence())
@@ -254,22 +255,29 @@ def aspect2(df, productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
     reviews = df.cleanedtext.values
-
+    # grammi
     text_data = []
     for r in reviews:
         tokens = prepare_text_for_lda(r)
         print(tokens)
-        bigram = list(nltk.bigrams(tokens))
-        tokens = []
-
-        for i in bigram:
-            tokens.append((''.join([w + ' ' for w in i])).strip())
         text_data.append(tokens)
+    # birammi
+    # text_data = []
+    # for r in reviews:
+    #     tokens = prepare_text_for_lda(r)
+    #     print(tokens)
+    #     bigram = list(nltk.bigrams(tokens))
+    #     tokens = []
+    #     for i in bigram:
+    #         tokens.append((''.join([w + ' ' for w in i])).strip())
+    #     text_data.append(tokens)
+
 
     # LDA with Gensim
     # First, we are creating a dictionary from the data,
     # then convert to bag-of-words corpus and save the dictionary and corpus for future use.
     dictionary = corpora.Dictionary(text_data)
+    dictionary.filter_extremes(no_below=10, no_above=0.2)
     corpus = [dictionary.doc2bow(text) for text in text_data]
     pickle.dump(corpus, open('corpus.pkl', 'wb'))
     dictionary.save('dictionary.gensim')
@@ -277,11 +285,11 @@ def aspect2(df, productId):
     # Finding out the optimal number of topics
     np.random.seed(50)
 
-    # lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=6)
-    # max_value = max(c_v)
-    # max_index = c_v.index(max_value)
-
-    NUM_TOPICS = 4
+    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=6)
+    max_value = max(c_v)
+    max_index = c_v.index(max_value)
+    NUM_TOPICS = max_index + 1
+    # NUM_TOPICS = 4
 
     ldamodel = gensim.models.ldamulticore.LdaMulticore(corpus, num_topics=NUM_TOPICS, id2word=dictionary,
                                                        iterations=500)
@@ -332,7 +340,6 @@ def aspect2(df, productId):
     # TODO: LDA multithread, trovare numero ottimale di iterazioni
 
     print("END ASPECT2")
-
 
 if __name__ == "__main__":
     # df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
