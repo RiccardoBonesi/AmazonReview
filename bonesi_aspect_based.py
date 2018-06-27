@@ -285,10 +285,7 @@ def aspect2(df, productId):
     max_index = c_v.index(max_value)
     NUM_TOPICS = max_index + 1
 
-
-
-    ldamodel = gensim.models.ldamodel.LdaModel(corpus, alpha="auto", num_topics=NUM_TOPICS,
-                                               id2word=dictionary, iterations=500)
+    ldamodel = gensim.models.ldamulticore.LdaMulticore(corpus, alpha="auto", num_topics=NUM_TOPICS,id2word=dictionary, iterations=500)
     ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
 
@@ -308,6 +305,12 @@ def aspect2(df, productId):
 
     for topic in topics:
         print(topic)
+
+    for t in range(NUM_TOPICS):
+        plt.figure()
+        plt.imshow(WordCloud().generate(ldamodel.get_topic_terms(t, 100)))
+        plt.axis("off")
+        plt.show()
 
     dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
     corpus = pickle.load(open('corpus.pkl', 'rb'))
