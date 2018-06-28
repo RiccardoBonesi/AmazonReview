@@ -231,8 +231,53 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     return lm_list, c_v
 
 
-def aspect2(df):
+def aspect2(productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
+
+    df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
+    df = df.dropna()
+    # asd = df.groupby('productid').score.mean().reset_index()
+    # asd2 = df.productid.value_counts()
+    # asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
+    # asd4 = asd3.sort_values('score')
+    # df = df.loc[
+    #     (df['productid'] == "B002QWP89S") | (df['productid'] == "B007M83302") | (df['productid'] == "B0013NUGDE") | (
+    #                 df['productid'] == "B000KV61FC") | (df['productid'] == "B000KV61FC")]
+
+    # listdata = []
+    # listdata.append("B002QWP89S")
+    # listdata.append("B007M83302")
+    # listdata.append("B0013NUGDE")
+    # listdata.append("B000KV61FC")
+    # listdata.append("B000PDY3P0")
+    # listdata.append("B006N3IG4K")
+    #
+    # for dataf in listdata:
+    #     print(dataf)
+    #     df1 = df.loc[(df['productid'] == dataf)]
+    #     aspect2(df1)
+
+
+    # B002QWP89S    629
+    # B007M83302    564
+    # B0013NUGDE    564
+    # B000KV61FC    554
+    # B000PDY3P0    486
+    # B006N3IG4K    455
+    # B003VXFK44    455
+    # B001LG945O    347
+    # B001LGGH40    338
+    # B004ZIER34    330
+    # B005K4Q1VI    324
+    # B008ZRKZSM    310
+
+    productList = ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
+                   "B001LG945O", "B001LGGH40", "B004ZIER34"]
+
+    df = df.loc[df['productid'] == productList[productId]]
+
+    # df = df.loc[df['productid'] == "B00813GRG4"]
+
 
     reviews = df.cleanedtext.values
     # grammi
@@ -381,18 +426,22 @@ if __name__ == "__main__":
     asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
     asd4 = asd3.sort_values('score')
 
-    listdata = []
-    listdata.append("B002QWP89S")
-    listdata.append("B007M83302")
-    listdata.append("B0013NUGDE")
-    listdata.append("B000KV61FC")
-    listdata.append("B000PDY3P0")
-    listdata.append("B006N3IG4K")
+    # listdata = []
+    # listdata.append("B002QWP89S")
+    # listdata.append("B007M83302")
+    # listdata.append("B0013NUGDE")
+    # listdata.append("B000KV61FC")
+    # listdata.append("B000PDY3P0")
+    # listdata.append("B006N3IG4K")
+    #
+    # for dataf in listdata:
+    #     print(dataf)
+    #     df1 = df.loc[(df['productid'] == dataf)]
+    #     aspect2(df1)
 
-    for dataf in listdata:
-        print(dataf)
-        df1 = df.loc[(df['productid'] == dataf)]
-        aspect2(df1)
+
+
+    aspect2(0)
 
     # df1 = df.loc[
     #     (df['productid'] == "B002QWP89S")]
