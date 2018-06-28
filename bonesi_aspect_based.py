@@ -188,7 +188,7 @@ en_stop = set(nltk.corpus.stopwords.words('english'))
 
 def prepare_text_for_lda(text):
     tokens = tokenize(text)
-    print([token for token in tokens])
+    # print([token for token in tokens])
     tokens = [token for token in tokens if len(token) > 4]
 
     tokens = [token for token in tokens if token not in en_stop]
@@ -239,7 +239,7 @@ def aspect2(df):
     text_data = []
     for r in reviews:
         tokens = prepare_text_for_lda(r)
-        print(tokens)
+        # print(tokens)
         text_data.append(tokens)
     # birammi
     # text_data = []
@@ -282,7 +282,7 @@ def aspect2(df):
 
     x = ldamodel.show_topics(num_topics=NUM_TOPICS, num_words=15, formatted=False)
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in x]
-    print(ldamodel.print_topic(2, 100))
+    # print(ldamodel.print_topic(2, 100))
     # Below Code Prints Only Words
 
     sentiment_scores = list()
@@ -294,24 +294,35 @@ def aspect2(df):
         print(" ".join(words))
         line = TextBlob(" ".join(words))
         sentiment_scores.append(line.sentiment.polarity)
-        print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
+        # print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
 
-    for topic in topics:
-        print(topic)
+    # for topic in topics:
+    #     print(topic)
 
+    index = NUM_TOPICS * 100 + 11
+    fig = plt.figure()
+    i = 0
     for t in range(NUM_TOPICS):
-        plt.figure()
-        plt.imshow(WordCloud().generate(ldamodel.print_topic(t, 100)))
+        i += 1
+        ax = fig.add_subplot(NUM_TOPICS, 1, i)
+        ax.imshow(WordCloud().generate(ldamodel.print_topic(t, 100)))
         plt.axis("off")
         plt.title(t)
         plt.show()
+        index += 1
+
+    k = ldamodel.num_topics
+    topicWordProbMat = ldamodel.print_topics(k)
+    print(topicWordProbMat)
 
     dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
     corpus = pickle.load(open('corpus.pkl', 'rb'))
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
 
-    pyLDAvis.show(lda_display10)
+    # plot lda
+    # pyLDAvis.show(lda_display10)
+
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
@@ -369,8 +380,26 @@ if __name__ == "__main__":
     asd2 = df.productid.value_counts()
     asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
     asd4 = asd3.sort_values('score')
-    df1 = df.loc[
-        (df['productid'] == "B002QWP89S") | (df['productid'] == "B007M83302") | (df['productid'] == "B0013NUGDE") | (df['productid'] == "B000KV61FC")| (df['productid'] == "B000KV61FC")]
-    aspect2(df1)
+
+    listdata = []
+    listdata.append("B002QWP89S")
+    listdata.append("B007M83302")
+    listdata.append("B0013NUGDE")
+    listdata.append("B000KV61FC")
+    listdata.append("B000PDY3P0")
+    listdata.append("B006N3IG4K")
+
+    for dataf in listdata:
+        print(dataf)
+        df1 = df.loc[(df['productid'] == dataf)]
+        aspect2(df1)
+
+    # df1 = df.loc[
+    #     (df['productid'] == "B002QWP89S")]
+
+    # df1 = df.loc[
+    #     (df['productid'] == "B002QWP89S") | (df['productid'] == "B007M83302") | (df['productid'] == "B0013NUGDE") | (
+    #             df['productid'] == "B000KV61FC") | (df['productid'] == "B000KV61FC")]
+    # aspect2(df1)
     # df2 = df.loc[df['productid'] == "B00813GRG4"]
     # aspect2(df2, "B00813GRG4")
