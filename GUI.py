@@ -5,9 +5,16 @@ from PyQt5.QtWidgets import QDialog, QApplication
 
 
 class Ui_Form(object):
+
+    def __init__(self):
+        super().__init__()
+        self.method = 0
+
+
+
     def setupUi(self, Form):
 
-        self.method = 1
+        # self.method = 1
 
 
         Form.setObjectName("Form")
@@ -39,7 +46,7 @@ class Ui_Form(object):
         self.radioButton.setFont(font)
         self.radioButton.setObjectName("radioButton")
         self.radioButton.setChecked(True)
-        self.radioButton.toggled.connect(lambda: self.on_radio(1))
+        self.radioButton.toggled.connect(lambda: self.on_radio(self.radioButton))
 
         self.radioButton_2 = QtWidgets.QRadioButton(Form)
         self.radioButton_2.setGeometry(QtCore.QRect(30, 180, 251, 20))
@@ -47,8 +54,7 @@ class Ui_Form(object):
         font.setPointSize(9)
         self.radioButton_2.setFont(font)
         self.radioButton_2.setObjectName("radioButton_2")
-        self.radioButton_2.toggled.connect(lambda: self.on_radio(1))
-        self.radioButton_2.toggled()
+        self.radioButton_2.toggled.connect(lambda: self.on_radio(self.radioButton_2))
 
         self.label_3 = QtWidgets.QLabel(Form)
         self.label_3.setGeometry(QtCore.QRect(580, 115, 201, 21))
@@ -93,18 +99,34 @@ class Ui_Form(object):
 
 
     # prendo il valore dei radio button
-    def on_radio(self, y):
+    def on_radio(self, b):
         # print("RADIO BUTTON")
         # print(y)
         # imposto il tipo di analisi
-        self.method = y
+
+        if b.text() == "Sentiment Analysis":
+            if b.isChecked() == True:
+                self.method = 1
+
+        elif b.text() == "Aspect Based Sentimen Analysis":
+            if b.isChecked() == True:
+                self.method = 2
+
+
+
+        print(b.text())
 
 
     # Metodo associato al tasto START
     def on_start(self, product):
         print("Bottone START")
+
+        if(self.method == 0):
+            self.method = 1
+
+        print("METHOD: {}".format(self.method))
         # print(product)
-        print("method: " + self.method)
+        # print("method: " + self.method)
 
 
 
