@@ -5,10 +5,15 @@ from PyQt5.QtWidgets import QDialog, QApplication
 
 
 class Ui_Form(object):
+
+    def __init__(self):
+        super().__init__()
+        self.method = 0
+        self.product = 0
+
+
+
     def setupUi(self, Form):
-
-        self.method = 1
-
 
         Form.setObjectName("Form")
         Form.resize(924, 409)
@@ -39,7 +44,7 @@ class Ui_Form(object):
         self.radioButton.setFont(font)
         self.radioButton.setObjectName("radioButton")
         self.radioButton.setChecked(True)
-        self.radioButton.toggled.connect(lambda: self.on_radio(1))
+        self.radioButton.toggled.connect(lambda: self.on_radio(self.radioButton))
 
         self.radioButton_2 = QtWidgets.QRadioButton(Form)
         self.radioButton_2.setGeometry(QtCore.QRect(30, 180, 251, 20))
@@ -47,8 +52,7 @@ class Ui_Form(object):
         font.setPointSize(9)
         self.radioButton_2.setFont(font)
         self.radioButton_2.setObjectName("radioButton_2")
-        self.radioButton_2.toggled.connect(lambda: self.on_radio(1))
-        self.radioButton_2.toggled()
+        self.radioButton_2.toggled.connect(lambda: self.on_radio(self.radioButton_2))
 
         self.label_3 = QtWidgets.QLabel(Form)
         self.label_3.setGeometry(QtCore.QRect(580, 115, 201, 21))
@@ -65,8 +69,11 @@ class Ui_Form(object):
         font.setPointSize(9)
         self.comboBox.setFont(font)
         self.comboBox.setObjectName("comboBox")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
+        self.comboBox.addItems(["Test #1", "Test #2", "Test #3", "Test #4", "Test #5", "Test #6", "Test #7", "Test #8", "Test #9", "Test #10"])
+
+        self.comboBox.currentIndexChanged.connect(self.set_product)
+        # self.comboBox.addItem("")
+        # self.comboBox.addItem("")
 
         self.startButton = QtWidgets.QPushButton(Form)
         self.startButton.setGeometry(QtCore.QRect(390, 320, 141, 61))
@@ -87,24 +94,61 @@ class Ui_Form(object):
         self.radioButton.setText(_translate("Form", "Sentiment Analysis"))
         self.radioButton_2.setText(_translate("Form", "Aspect Based Sentimen Analysis"))
         self.label_3.setText(_translate("Form", "Select Product:"))
-        self.comboBox.setItemText(0, _translate("Form", "Prodotto 1"))
-        self.comboBox.setItemText(1, _translate("Form", "Prodotto 2"))
+        # self.comboBox.setItemText(0, _translate("Form", "Prodotto 1"))
+        # self.comboBox.setItemText(1, _translate("Form", "Prodotto 2"))
         self.startButton.setText(_translate("Form", "START"))
 
 
     # prendo il valore dei radio button
-    def on_radio(self, y):
-        # print("RADIO BUTTON")
-        # print(y)
+    def on_radio(self, b):
+
         # imposto il tipo di analisi
-        self.method = y
+
+        if b.text() == "Sentiment Analysis":
+            if b.isChecked() == True:
+                self.method = 1
+
+        elif b.text() == "Aspect Based Sentimen Analysis":
+            if b.isChecked() == True:
+                self.method = 2
+
+
+
+    def set_product(self, i):
+        # i è l'indice del comboBox (parte da 0)
+        self.product = i+1
+
+
+
+
+
+
 
 
     # Metodo associato al tasto START
     def on_start(self, product):
         print("Bottone START")
-        # print(product)
-        print("method: " + self.method)
+
+        # se non ho selezionato il metodo metto di default 1
+        if self.method == 0:
+            self.method = 1
+
+        # se non ho selezionato un prodotto metto di default il primo
+        if self.product == 0:
+            self.product = 1
+
+
+
+
+        print("METHOD: {}".format(self.method))
+        print("PRODUCT: {}".format(self.product))
+
+
+
+
+
+
+
 
 
 
