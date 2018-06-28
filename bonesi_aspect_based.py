@@ -5,6 +5,9 @@ import string
 from collections import Counter
 from string import punctuation
 
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
+
 import gensim
 import matplotlib.pyplot as plt
 import numpy as np

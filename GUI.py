@@ -1,5 +1,5 @@
 from PyQt5 import QtGui, QtCore
-from bonesi_aspect_based import *
+from bonesi_aspect_based import aspect2
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QApplication
