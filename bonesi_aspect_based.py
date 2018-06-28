@@ -4,35 +4,21 @@ import pickle
 import gensim
 import pyLDAvis.gensim
 import string
-
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
 import re
 import math
-import absa
-from nltk.corpus import stopwords
-from bs4 import BeautifulSoup
-import pandas
 from collections import Counter
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
-from sklearn.dummy import DummyClassifier
 from string import punctuation
-from sklearn import svm
-from nltk.corpus import stopwords
-from nltk.stem import WordNetLemmatizer
-import nltk
-from nltk import ngrams
-from itertools import chain
-from wordcloud import WordCloud
 from textblob import TextBlob, Word
-import matplotlib.pyplot as plt
 import seaborn as sns
-
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+from sklearn.model_selection import train_test_split # function for splitting data to train and test sets
+from wordcloud import WordCloud,STOPWORDS
+import matplotlib.pyplot as plt
+import matplotlib
+from nltk.tokenize import word_tokenize
+import matplotlib.pyplot as plt
+from nltk.corpus import stopwords
 from spacy.lang.en import English
 
 parser = English()
@@ -251,6 +237,70 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     return lm_list, c_v
 
 
+def not_aspect_based(df):
+    stop = stopwords.words('english')
+    # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
+
+    for index, row in df.iterrows():
+        word_tokens = word_tokenize(row.cleanedtext)
+
+        filtered_sentence = [w for w in word_tokens if not w in stop]
+
+        filtered_sentence = []
+
+        for w in word_tokens:
+            if w not in stop:
+                filtered_sentence.append(w)
+
+        print(word_tokens)
+        print(filtered_sentence)
+
+        df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
+
+    sentiment_scores = list()
+    i = 0
+    for sentence in df.cleanedtext:
+        line = TextBlob(sentence)
+        sentiment_scores.append(line.sentiment.polarity)
+        # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
+
+    # df['polarity'] = sentiment_scores
+    # normalized_polarity = 2*(df['polarity'] - df['polarity'].min()) / (df['polarity'].max() - df['polarity'].min())-1
+    # normalized_score = 2*(df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min())-1
+    # sns.distplot(normalized_polarity)
+    # sns.distplot(normalized_score)
+    # plt.show()
+
+
+    #PLOT POSITIVE
+    # normalized_polarity = df[df['PosNeg'] == 'positive'].polarity
+    # normalized_score = (df[df['PosNeg'] == 'positive'].score - df[df['PosNeg'] == 'positive'].score.min()) / (
+    #             df[df['PosNeg'] == 'positive'].score.max() - df[df['PosNeg'] == 'positive'].score.min())+0.5
+    #
+    # sns.distplot(normalized_polarity, kde=False)
+    # sns.distplot(normalized_score, kde=False)
+    # #
+    # normalized_polarity = df[df['PosNeg'] == 'negative'].polarity
+    # normalized_score = (df[df['PosNeg'] == 'negative'].score - df[df['PosNeg'] == 'negative'].score.min()) / (
+    #         df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min())-1
+    #
+    # sns.distplot(normalized_polarity, kde=False)
+    # sns.distplot(normalized_score, kde=False)
+    #
+    # plt.show()
+    #TODO FINE parte negativa e positiva, qua sotto correlazione
+    print(np.corrcoef(df.score, df.polarity))
+    matplotlib.style.use('ggplot')
+
+    plt.scatter(df.score, df.polarity)
+    plt.show()
+    # train, test = train_test_split(df, test_size=0.1)
+    # train_pos = train[train['sentiment'] == 'positive']
+    # train_pos = train_pos['text']
+    # train_neg = train[train['sentiment'] == 'negative']
+    # train_neg = train_neg['text']
+
+
 def aspect2(df, productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
@@ -261,17 +311,7 @@ def aspect2(df, productId):
         tokens = prepare_text_for_lda(r)
         print(tokens)
         text_data.append(tokens)
-    # birammi
-    # text_data = []
-    # for r in reviews:
-    #     tokens = prepare_text_for_lda(r)
-    #     print(tokens)
-    #     bigram = list(nltk.bigrams(tokens))
-    #     tokens = []
-    #     for i in bigram:
-    #         tokens.append((''.join([w + ' ' for w in i])).strip())
-    #     text_data.append(tokens)
-
+    print(tokens)
 
     # LDA with Gensim
     # First, we are creating a dictionary from the data,
@@ -337,7 +377,7 @@ def aspect2(df, productId):
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
 
-    # TODO: LDA multithread, trovare numero ottimale di iterazioni
+
 
     print("END ASPECT2")
 
@@ -390,6 +430,7 @@ if __name__ == "__main__":
     asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
     asd4 = asd3.sort_values('score')
     df1 = df.loc[df['productid'] == "B007M83302"]
-    aspect2(df1, "B007M83302")
+    not_aspect_based(df)
+    # aspect2(df1, "B007M83302")
     # df2 = df.loc[df['productid'] == "B00813GRG4"]
     # aspect2(df2, "B00813GRG4")
