@@ -9,13 +9,11 @@ class Ui_Form(object):
     def __init__(self):
         super().__init__()
         self.method = 0
+        self.product = 0
 
 
 
     def setupUi(self, Form):
-
-        # self.method = 1
-
 
         Form.setObjectName("Form")
         Form.resize(924, 409)
@@ -71,8 +69,11 @@ class Ui_Form(object):
         font.setPointSize(9)
         self.comboBox.setFont(font)
         self.comboBox.setObjectName("comboBox")
-        self.comboBox.addItem("")
-        self.comboBox.addItem("")
+        self.comboBox.addItems(["Test #1", "Test #2", "Test #3", "Test #4", "Test #5", "Test #6", "Test #7", "Test #8", "Test #9", "Test #10"])
+
+        self.comboBox.currentIndexChanged.connect(self.set_product)
+        # self.comboBox.addItem("")
+        # self.comboBox.addItem("")
 
         self.startButton = QtWidgets.QPushButton(Form)
         self.startButton.setGeometry(QtCore.QRect(390, 320, 141, 61))
@@ -93,15 +94,14 @@ class Ui_Form(object):
         self.radioButton.setText(_translate("Form", "Sentiment Analysis"))
         self.radioButton_2.setText(_translate("Form", "Aspect Based Sentimen Analysis"))
         self.label_3.setText(_translate("Form", "Select Product:"))
-        self.comboBox.setItemText(0, _translate("Form", "Prodotto 1"))
-        self.comboBox.setItemText(1, _translate("Form", "Prodotto 2"))
+        # self.comboBox.setItemText(0, _translate("Form", "Prodotto 1"))
+        # self.comboBox.setItemText(1, _translate("Form", "Prodotto 2"))
         self.startButton.setText(_translate("Form", "START"))
 
 
     # prendo il valore dei radio button
     def on_radio(self, b):
-        # print("RADIO BUTTON")
-        # print(y)
+
         # imposto il tipo di analisi
 
         if b.text() == "Sentiment Analysis":
@@ -114,19 +114,41 @@ class Ui_Form(object):
 
 
 
-        print(b.text())
+    def set_product(self, i):
+        # i è l'indice del comboBox (parte da 0)
+        self.product = i+1
+
+
+
+
+
+
 
 
     # Metodo associato al tasto START
     def on_start(self, product):
         print("Bottone START")
 
-        if(self.method == 0):
+        # se non ho selezionato il metodo metto di default 1
+        if self.method == 0:
             self.method = 1
 
+        # se non ho selezionato un prodotto metto di default il primo
+        if self.product == 0:
+            self.product = 1
+
+
+
+
         print("METHOD: {}".format(self.method))
-        # print(product)
-        # print("method: " + self.method)
+        print("PRODUCT: {}".format(self.product))
+
+
+
+
+
+
+
 
 
 
