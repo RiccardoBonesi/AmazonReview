@@ -116,7 +116,7 @@ class Ui_Form(object):
 
     def set_product(self, i):
         # i è l'indice del comboBox (parte da 0)
-        self.product = i+1
+        self.product = i
 
 
 
@@ -133,17 +133,14 @@ class Ui_Form(object):
         if self.method == 0:
             self.method = 1
 
-        # se non ho selezionato un prodotto metto di default il primo
-        if self.product == 0:
-            self.product = 1
-
-
-
-
         print("METHOD: {}".format(self.method))
         print("PRODUCT: {}".format(self.product))
 
 
+        # if self.method==1:
+        #     # TODO chiama metodo sentiment
+        # else:
+        #     # TODO chiama aspect2
 
 
 
