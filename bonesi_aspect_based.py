@@ -1,12 +1,4 @@
-import math
-import pickle
-import re
-import string
-from collections import Counter
-from string import punctuation
-
-import warnings
-warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
+from dataset_utils import *
 
 import gensim
 import matplotlib.pyplot as plt
@@ -20,144 +12,20 @@ from textblob import TextBlob
 from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
-
 import matplotlib
-
-
-parser = English()
-
+import pickle
+import warnings
 import nltk
-
 # nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
-
 import os
+warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
+
+parser = English()
 
 java_path = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
 os.environ['JAVAHOME'] = java_path
 
-
-def label_rate(row):
-    if row['score'] == 1:
-        return 'negative'
-    if row['score'] == 2:
-        return 'negative'
-    if row['score'] == 4:
-        return 'positive'
-    if row['score'] == 5:
-        return 'positive'
-    return 'neutral'
-
-
-def plot_rating(data):
-    ax = plt.axes()
-    sns.countplot(data.score, ax=ax)
-    ax.set_title('Score Distribution')
-    plt.show()
-
-
-def word_count(row):
-    return len(re.findall(r'\w+', row))
-
-
-def word_count_log(row):
-    return math.log(len(re.findall(r'\w+', row)))
-
-
-def vocabulary_reduction(reviews, labels, min_freq=10, polarity_cut_off=0.1):
-    pos_count = Counter()
-    neg_count = Counter()
-    tot_count = Counter()
-
-    for i in range(len(reviews)):
-        for word in reviews[i].split():
-            tot_count[word] += 1
-            if labels[i] == 1:
-                pos_count[word] += 1
-            else:
-                neg_count[word] += 1
-
-                # Identify words with frequency greater than min_freq
-    vocab_freq = []
-    for word in tot_count.keys():
-        if tot_count[word] > min_freq:
-            vocab_freq.append(word)
-
-            # Use polarity to reduce vocab
-    pos_neg_ratio = Counter()
-    vocab_pos_neg = (set(pos_count.keys())).intersection(set(neg_count.keys()))
-    for word in vocab_pos_neg:
-        if tot_count[word] > 100:
-            ratio = pos_count[word] / float(neg_count[word] + 1)
-            if ratio > 1:
-                pos_neg_ratio[word] = np.log(ratio)
-            else:
-                pos_neg_ratio[word] = -np.log(1 / (ratio + 0.01))
-
-    mean_ratio = np.mean(list(pos_neg_ratio.values()))
-
-    vocab_polarity = []
-    for word in pos_neg_ratio.keys():
-        if (pos_neg_ratio[word] < (mean_ratio - polarity_cut_off)) or (
-                pos_neg_ratio[word] > (mean_ratio + polarity_cut_off)):
-            vocab_polarity.append(word)
-
-    vocab_rm_polarity = set(pos_neg_ratio.keys()).difference(vocab_polarity)
-    vocab_reduced = (set(vocab_freq)).difference(set(vocab_rm_polarity))
-
-    reviews_cleaned = []
-
-    for review in reviews:
-        review_temp = [word for word in review.split() if word in vocab_reduced]
-        reviews_cleaned.append(' '.join(review_temp))
-
-    return reviews_cleaned
-
-
-def data_preprocessing(df):
-    reviews = df.text
-    translator = str.maketrans(string.punctuation, ' ' * len(string.punctuation))
-    # reviews.translate(translator)
-    reviews = reviews.apply(lambda row: row.translate(translator))
-    reviews = reviews.values
-    labels = np.array([1 if s == "positive" else 0 for s in df.PosNeg.values])
-
-    ### remove punctuations
-    reviews_cleaned = []
-    for i in range(len(reviews)):
-        reviews_cleaned.append(''.join([c.lower() for c in reviews[i] if c not in punctuation]))
-
-    print("Before: ", reviews[0])
-    print("")
-    print("After: ", reviews_cleaned[0])
-
-    ### new vocabulary
-    vocabulary = set(' '.join(reviews_cleaned).split())
-    print("Vocabulary size: ", len(vocabulary))
-
-    # Vocabulary reduction function to reduce the vocabulary
-    # based on min frequency or polarity.
-    reviews_cleaned = vocabulary_reduction(reviews_cleaned, labels, min_freq=0, polarity_cut_off=0)
-
-    # ### TRANSFORM EACH REVIEW INTO A LIST OF INTEGERS
-    #
-    # # 1) create a dictionary to map each word contained in vocabulary of the reviews to an integer
-    # # Store all the text from each review in a text variable
-    # text = ' '.join(reviews_cleaned)
-    #
-    # # List all the vocabulary contained in the reviews
-    # vocabulary = set(text.split(' '))
-    #
-    # # Map each word to an integer
-    # vocabulary_to_int = {word: i for i, word in enumerate(vocabulary, 0)}
-    #
-    # reviews_to_int = []
-    # for i in range(len(reviews_cleaned)):
-    #     to_int = [vocabulary_to_int[word] for word in reviews_cleaned[i].split()]
-    #     reviews_to_int.append(to_int)
-
-    print("END PREPROCESSING")
-    return reviews_cleaned
 
 
 def get_lemma(word):
@@ -302,32 +170,17 @@ def not_aspect_based(df):
     # train_neg = train[train['sentiment'] == 'negative']
     # train_neg = train_neg['text']
 
+
 def aspect2(productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
-    df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
+    # provo ad importare il df o lo genero
+    try:
+        df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
+    except:
+        df = generate_df()
+
     df = df.dropna()
-    # asd = df.groupby('productid').score.mean().reset_index()
-    # asd2 = df.productid.value_counts()
-    # asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
-    # asd4 = asd3.sort_values('score')
-    # df = df.loc[
-    #     (df['productid'] == "B002QWP89S") | (df['productid'] == "B007M83302") | (df['productid'] == "B0013NUGDE") | (
-    #                 df['productid'] == "B000KV61FC") | (df['productid'] == "B000KV61FC")]
-
-    # listdata = []
-    # listdata.append("B002QWP89S")
-    # listdata.append("B007M83302")
-    # listdata.append("B0013NUGDE")
-    # listdata.append("B000KV61FC")
-    # listdata.append("B000PDY3P0")
-    # listdata.append("B006N3IG4K")
-    #
-    # for dataf in listdata:
-    #     print(dataf)
-    #     df1 = df.loc[(df['productid'] == dataf)]
-    #     aspect2(df1)
-
 
     # B002QWP89S    629
     # B007M83302    564
@@ -446,85 +299,15 @@ def aspect2(productId):
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
 
-    # TODO: LDA multithread, trovare numero ottimale di iterazioni
-
-    print("END ASPECT2")
-
 
 if __name__ == "__main__":
-    # df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
-    # df['text'] = [BeautifulSoup(text,"html.parser").get_text() for text in df['text']]
-    # unique_product = df.productid.unique()
-    # df['PosNeg'] = df.apply(lambda row : label_rate(row), axis=1)
-    # # plot_rating(df)
-    #
-    # df['WordCount'] = df.text.apply(lambda row: word_count(row))
-    # # df['WordCountLog'] = df.text.apply(lambda row: word_count_log(row))
-    # # print(df.WordCount.min())
-    # # plt.hist(df.WordCountLog, bins=np.arange(df.WordCountLog.min(), df.WordCountLog.max() + 1))
-    #
-    # print(df['userid'].value_counts())
-    # df['cleanedtext'] = data_preprocessing(df)
-    # # plt.hist(df.userid)
-    # # absa.main_sentence(df.cleanedtext[10])
-    # # get_most_common_aspect(df.text[1:50])
-    # sentiment_scores = list()
-    # i = 0
-    # for sentence in df.cleanedtext:
-    #     line = TextBlob(sentence)
-    #     sentiment_scores.append(line.sentiment.polarity)
-    #     # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
-    #
-    # df['polarity'] = sentiment_scores
-    #
-    # # sns.distplot(df['polarity'])
-    # df.to_csv("cleanedTextCSV.csv", sep='\t', encoding='utf-8')
-
-    # B002QWP89S    629
-    # B007M83302    564
-    # B0013NUGDE    564
-    # B000KV61FC    554
-    # B000PDY3P0    486
-    # B006N3IG4K    455
-    # B003VXFK44    455
-    # B001LG945O    347
-    # B001LGGH40    338
-    # B004ZIER34    330
-    # B005K4Q1VI    324
-    # B008ZRKZSM    310
 
     df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     df = df.dropna()
-    asd = df.groupby('productid').score.mean().reset_index()
-    asd2 = df.productid.value_counts()
-    asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
-    asd4 = asd3.sort_values('score')
 
-    # listdata = []
-    # listdata.append("B002QWP89S")
-    # listdata.append("B007M83302")
-    # listdata.append("B0013NUGDE")
-    # listdata.append("B000KV61FC")
-    # listdata.append("B000PDY3P0")
-    # listdata.append("B006N3IG4K")
-    #
-    # for dataf in listdata:
-    #     print(dataf)
-    #     df1 = df.loc[(df['productid'] == dataf)]
-    #     aspect2(df1)
     for a in range(9):
         aspect2(a)
 
-
-
     not_aspect_based(df)
 
-    # df1 = df.loc[
-    #     (df['productid'] == "B002QWP89S")]
 
-    # df1 = df.loc[
-    #     (df['productid'] == "B002QWP89S") | (df['productid'] == "B007M83302") | (df['productid'] == "B0013NUGDE") | (
-    #             df['productid'] == "B000KV61FC") | (df['productid'] == "B000KV61FC")]
-    # aspect2(df1)
-    # df2 = df.loc[df['productid'] == "B00813GRG4"]
-    # aspect2(df2, "B00813GRG4")
