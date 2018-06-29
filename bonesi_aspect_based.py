@@ -5,6 +5,9 @@ import string
 from collections import Counter
 from string import punctuation
 
+import warnings
+warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
+
 import gensim
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +18,11 @@ from gensim import corpora
 from spacy.lang.en import English
 from textblob import TextBlob
 from wordcloud import WordCloud
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+
+import matplotlib
+
 
 parser = English()
 
@@ -231,6 +239,69 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     return lm_list, c_v
 
 
+def not_aspect_based(df):
+    stop = stopwords.words('english')
+    # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
+
+    for index, row in df.iterrows():
+        word_tokens = word_tokenize(row.cleanedtext)
+
+        filtered_sentence = [w for w in word_tokens if not w in stop]
+
+        filtered_sentence = []
+
+        for w in word_tokens:
+            if w not in stop:
+                filtered_sentence.append(w)
+
+        # print(word_tokens)
+        # print(filtered_sentence)
+
+        df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
+
+    sentiment_scores = list()
+    i = 0
+    for sentence in df.cleanedtext:
+        line = TextBlob(sentence)
+        sentiment_scores.append(line.sentiment.polarity)
+        # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
+
+    # df['polarity'] = sentiment_scores
+    # normalized_polarity = 2*(df['polarity'] - df['polarity'].min()) / (df['polarity'].max() - df['polarity'].min())-1
+    # normalized_score = 2*(df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min())-1
+    # sns.distplot(normalized_polarity)
+    # sns.distplot(normalized_score)
+    # plt.show()
+
+
+    # PLOT POSITIVE
+    normalized_polarity = df[df['PosNeg'] == 'positive'].polarity
+    normalized_score = (df[df['PosNeg'] == 'positive'].score - df[df['PosNeg'] == 'positive'].score.min()) / (
+                df[df['PosNeg'] == 'positive'].score.max() - df[df['PosNeg'] == 'positive'].score.min())+0.5
+
+    sns.distplot(normalized_polarity, kde=False)
+    sns.distplot(normalized_score, kde=False)
+    #
+    normalized_polarity = df[df['PosNeg'] == 'negative'].polarity
+    normalized_score = (df[df['PosNeg'] == 'negative'].score - df[df['PosNeg'] == 'negative'].score.min()) / (
+            df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min())-1
+
+    sns.distplot(normalized_polarity, kde=False)
+    sns.distplot(normalized_score, kde=False)
+
+    plt.show()
+    #TODO FINE parte negativa e positiva, qua sotto correlazione
+    print(np.corrcoef(df.score, df.polarity))
+    matplotlib.style.use('ggplot')
+
+    plt.scatter(df.score, df.polarity)
+    plt.show()
+    # train, test = train_test_split(df, test_size=0.1)
+    # train_pos = train[train['sentiment'] == 'positive']
+    # train_pos = train_pos['text']
+    # train_neg = train[train['sentiment'] == 'negative']
+    # train_neg = train_neg['text']
+
 def aspect2(productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
@@ -257,6 +328,7 @@ def aspect2(productId):
     #     df1 = df.loc[(df['productid'] == dataf)]
     #     aspect2(df1)
 
+
     # B002QWP89S    629
     # B007M83302    564
     # B0013NUGDE    564
@@ -277,7 +349,6 @@ def aspect2(productId):
 
     # df = df.loc[df['productid'] == "B00813GRG4"]
 
-    # df = df.head(10)
 
     reviews = df.cleanedtext.values
     # grammi
@@ -443,6 +514,10 @@ if __name__ == "__main__":
     #     aspect2(df1)
     for a in range(9):
         aspect2(a)
+
+
+
+    not_aspect_based(df)
 
     # df1 = df.loc[
     #     (df['productid'] == "B002QWP89S")]
