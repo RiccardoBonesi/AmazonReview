@@ -1,5 +1,5 @@
 from PyQt5 import QtGui, QtCore
-from bonesi_aspect_based import aspect2
+from bonesi_aspect_based import reviews_absa, reviews_sentiment
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QApplication
@@ -130,9 +130,9 @@ class App(QWidget):
         print("PRODUCT: {}".format(self.product))
 
         if self.method == 1:
-            print("metodo sentiment")
+            reviews_sentiment()
         else:
-            aspect2(self.product)
+            reviews_absa(self.product)
 
 
 

@@ -107,7 +107,16 @@ def evaluate_graph(dictionary, corpus, texts, limit):
     return lm_list, c_v
 
 
-def not_aspect_based(df):
+def reviews_sentiment():
+
+    try:
+        df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
+    except:
+        df = generate_df()
+
+    df = df.dropna()
+
+
     stop = stopwords.words('english')
     # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
 
@@ -171,7 +180,7 @@ def not_aspect_based(df):
     # train_neg = train_neg['text']
 
 
-def aspect2(productId):
+def reviews_absa(productId):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
     # provo ad importare il df o lo genero
@@ -302,12 +311,9 @@ def aspect2(productId):
 
 if __name__ == "__main__":
 
-    df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
-    df = df.dropna()
-
     for a in range(9):
-        aspect2(a)
+        reviews_absa(a)
 
-    not_aspect_based(df)
+    reviews_sentiment()
 
 
