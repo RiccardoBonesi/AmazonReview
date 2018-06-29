@@ -257,7 +257,6 @@ def aspect2(productId):
     #     df1 = df.loc[(df['productid'] == dataf)]
     #     aspect2(df1)
 
-
     # B002QWP89S    629
     # B007M83302    564
     # B0013NUGDE    564
@@ -278,6 +277,7 @@ def aspect2(productId):
 
     # df = df.loc[df['productid'] == "B00813GRG4"]
 
+    # df = df.head(10)
 
     reviews = df.cleanedtext.values
     # grammi
@@ -301,7 +301,7 @@ def aspect2(productId):
     # First, we are creating a dictionary from the data,
     # then convert to bag-of-words corpus and save the dictionary and corpus for future use.
     dictionary = corpora.Dictionary(text_data)
-    dictionary.filter_extremes(no_below=0.001, no_above=0.28)
+    dictionary.filter_extremes(no_below=10, no_above=0.50)
     corpus = [dictionary.doc2bow(text) for text in text_data]
     pickle.dump(corpus, open('corpus.pkl', 'wb'))
     dictionary.save('dictionary.gensim')
@@ -344,18 +344,21 @@ def aspect2(productId):
     # for topic in topics:
     #     print(topic)
 
-    index = NUM_TOPICS * 100 + 11
-    fig = plt.figure()
+    index = (NUM_TOPICS * 100) / 2 + 21
+    fig = plt.figure(figsize=(20, 10))
     i = 0
     for t in range(NUM_TOPICS):
         i += 1
-        ax = fig.add_subplot(NUM_TOPICS, 1, i)
-        ax.imshow(WordCloud().generate(ldamodel.print_topic(t, 100)))
-        plt.axis("off")
-        plt.title(t)
-        plt.show()
+        # fig.add_subplot(NUM_TOPICS, 1, i)
+        ax = plt.subplot(index)
+        wordcloud = WordCloud(width=800, height=400).generate(ldamodel.print_topic(t, 10))
+        ax.imshow(wordcloud, aspect="equal")
+        ax.axis("off")
         index += 1
 
+    plt.suptitle(productList[productId])
+    plt.tight_layout(pad=0)
+    plt.show()
     k = ldamodel.num_topics
     topicWordProbMat = ldamodel.print_topics(k)
     print(topicWordProbMat)
@@ -366,7 +369,7 @@ def aspect2(productId):
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
 
     # plot lda
-    # pyLDAvis.show(lda_display10)
+    #pyLDAvis.show(lda_display10)
 
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
@@ -438,10 +441,8 @@ if __name__ == "__main__":
     #     print(dataf)
     #     df1 = df.loc[(df['productid'] == dataf)]
     #     aspect2(df1)
-
-
-
-    aspect2(0)
+    for a in range(9):
+        aspect2(a)
 
     # df1 = df.loc[
     #     (df['productid'] == "B002QWP89S")]
