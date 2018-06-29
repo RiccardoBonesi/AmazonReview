@@ -209,8 +209,6 @@ def reviews_absa(productId):
 
     df = df.loc[df['productid'] == productList[productId]]
 
-    # df = df.loc[df['productid'] == "B00813GRG4"]
-
 
     reviews = df.cleanedtext.values
     # grammi
@@ -307,6 +305,9 @@ def reviews_absa(productId):
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
+
+
+    print("END ABSA")
 
 
 if __name__ == "__main__":
