@@ -19,13 +19,13 @@ import nltk
 # nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
 import os
+
 warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 
 parser = English()
 
 java_path = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
 os.environ['JAVAHOME'] = java_path
-
 
 
 def get_lemma(word):
@@ -108,14 +108,12 @@ def evaluate_graph(dictionary, corpus, texts, limit):
 
 
 def reviews_sentiment():
-
     try:
         df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     except:
         df = generate_df()
 
     df = df.dropna()
-
 
     stop = stopwords.words('english')
     # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
@@ -150,24 +148,23 @@ def reviews_sentiment():
     # sns.distplot(normalized_score)
     # plt.show()
 
-
     # PLOT POSITIVE
     normalized_polarity = df[df['PosNeg'] == 'positive'].polarity
     normalized_score = (df[df['PosNeg'] == 'positive'].score - df[df['PosNeg'] == 'positive'].score.min()) / (
-                df[df['PosNeg'] == 'positive'].score.max() - df[df['PosNeg'] == 'positive'].score.min())+0.5
+            df[df['PosNeg'] == 'positive'].score.max() - df[df['PosNeg'] == 'positive'].score.min()) + 0.5
 
     sns.distplot(normalized_polarity, kde=False)
     sns.distplot(normalized_score, kde=False)
     #
     normalized_polarity = df[df['PosNeg'] == 'negative'].polarity
     normalized_score = (df[df['PosNeg'] == 'negative'].score - df[df['PosNeg'] == 'negative'].score.min()) / (
-            df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min())-1
+            df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min()) - 1
 
     sns.distplot(normalized_polarity, kde=False)
     sns.distplot(normalized_score, kde=False)
 
     plt.show()
-    #TODO FINE parte negativa e positiva, qua sotto correlazione
+    # TODO FINE parte negativa e positiva, qua sotto correlazione
     print(np.corrcoef(df.score, df.polarity))
     matplotlib.style.use('ggplot')
 
@@ -178,6 +175,42 @@ def reviews_sentiment():
     # train_pos = train_pos['text']
     # train_neg = train[train['sentiment'] == 'negative']
     # train_neg = train_neg['text']
+
+
+def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
+    if NUM_TOPICS == 1:
+        index = 111
+    elif NUM_TOPICS == 2:
+        index = 121
+    elif NUM_TOPICS == 3:
+        index = 311
+    elif NUM_TOPICS == 4:
+        index = 221
+    elif NUM_TOPICS == 5:
+        index = 321
+    elif NUM_TOPICS == 6:
+        index = 231
+    elif NUM_TOPICS == 7:
+        index = 241
+    elif NUM_TOPICS == 8:
+        index = 241
+    elif NUM_TOPICS == 9:
+        index = 331
+    elif NUM_TOPICS == 10:
+        index = 251
+
+    fig = plt.figure(figsize=(60, 30))
+
+    for t in range(NUM_TOPICS):
+        ax = plt.subplot(index)
+        wordcloud = WordCloud(width=800, height=400).generate(ldamodel.print_topic(t, 10))
+        ax.imshow(wordcloud, aspect="equal")
+        ax.axis("off")
+        index += 1
+
+    plt.suptitle(productList[productId])
+    plt.tight_layout(pad=0)
+    plt.show()
 
 
 def reviews_absa(productId):
@@ -209,7 +242,6 @@ def reviews_absa(productId):
 
     df = df.loc[df['productid'] == productList[productId]]
 
-
     reviews = df.cleanedtext.values
     # grammi
     text_data = []
@@ -239,18 +271,19 @@ def reviews_absa(productId):
 
     # Finding out the optimal number of topics
     np.random.seed(50)
-
     lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
     max_value = max(c_v)
     max_index = c_v.index(max_value)
     NUM_TOPICS = max_index + 1
     # NUM_TOPICS = 4
 
+    # creo il modello con il NUM_TOPICS ottimale
     ldamodel = gensim.models.ldamulticore.LdaMulticore(corpus, num_topics=NUM_TOPICS, id2word=dictionary,
                                                        iterations=500)
-    ldamodel.save('model5.gensim')
+    # ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
 
+    # calcolo coherence value
     value = gensim.models.coherencemodel.CoherenceModel(model=ldamodel, texts=text_data, dictionary=dictionary,
                                                         coherence='c_v')
     coherence_lda = value.get_coherence()
@@ -261,38 +294,17 @@ def reviews_absa(productId):
     # print(ldamodel.print_topic(2, 100))
     # Below Code Prints Only Words
 
-    sentiment_scores = list()
-
     # Compute Coherence Score using c_v
 
-    i = 0
+    # calcolo la polarity del topic
+    sentiment_scores = list()
     for topic, words in topics_words:
         print(" ".join(words))
         line = TextBlob(" ".join(words))
         sentiment_scores.append(line.sentiment.polarity)
         # print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
 
-    # for topic in topics:
-    #     print(topic)
-
-    index = (NUM_TOPICS * 100) / 2 + 21
-    fig = plt.figure(figsize=(20, 10))
-    i = 0
-    for t in range(NUM_TOPICS):
-        i += 1
-        # fig.add_subplot(NUM_TOPICS, 1, i)
-        ax = plt.subplot(index)
-        wordcloud = WordCloud(width=800, height=400).generate(ldamodel.print_topic(t, 10))
-        ax.imshow(wordcloud, aspect="equal")
-        ax.axis("off")
-        index += 1
-
-    plt.suptitle(productList[productId])
-    plt.tight_layout(pad=0)
-    plt.show()
-    k = ldamodel.num_topics
-    topicWordProbMat = ldamodel.print_topics(k)
-    print(topicWordProbMat)
+    generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList)
 
     dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
     corpus = pickle.load(open('corpus.pkl', 'rb'))
@@ -300,21 +312,19 @@ def reviews_absa(productId):
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
 
     # plot lda
-    #pyLDAvis.show(lda_display10)
+    pyLDAvis.show(lda_display10)
 
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
     # print("LDA saved: " + productId)
 
-
     print("END ABSA")
 
 
 if __name__ == "__main__":
+    reviews_absa(0)
 
-    for a in range(9):
-        reviews_absa(a)
-
-    reviews_sentiment()
-
-
+    # for a in range(9):
+    #     reviews_absa(a)
+    #
+    # reviews_sentiment()
