@@ -96,6 +96,7 @@ def evaluate_graph(dictionary, corpus, texts, limit):
         cm = gensim.models.ldamodel.CoherenceModel(model=lm, texts=texts, dictionary=dictionary, coherence='c_v')
         c_v.append(cm.get_coherence())
 
+
     # Show graph
     x = range(1, limit)
     plt.plot(x, c_v)
@@ -213,7 +214,7 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
     plt.show()
 
 
-def reviews_absa(productId):
+def reviews_absa(productId, on_update=None):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
     # provo ad importare il df o lo genero
@@ -223,6 +224,9 @@ def reviews_absa(productId):
         df = generate_df()
 
     df = df.dropna()
+
+    # aggiorna il valore della progress bar
+    on_update(5)
 
     # B002QWP89S    629
     # B007M83302    564
@@ -234,13 +238,14 @@ def reviews_absa(productId):
     # B001LG945O    347
     # B001LGGH40    338
     # B004ZIER34    330
-    # B005K4Q1VI    324
-    # B008ZRKZSM    310
+
 
     productList = ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
                    "B001LG945O", "B001LGGH40", "B004ZIER34"]
 
     df = df.loc[df['productid'] == productList[productId]]
+
+    on_update(10)
 
     reviews = df.cleanedtext.values
     # grammi
@@ -263,23 +268,33 @@ def reviews_absa(productId):
     # LDA with Gensim
     # First, we are creating a dictionary from the data,
     # then convert to bag-of-words corpus and save the dictionary and corpus for future use.
+
+    on_update(20)
+
     dictionary = corpora.Dictionary(text_data)
     dictionary.filter_extremes(no_below=10, no_above=0.50)
     corpus = [dictionary.doc2bow(text) for text in text_data]
-    pickle.dump(corpus, open('corpus.pkl', 'wb'))
-    dictionary.save('dictionary.gensim')
+    # pickle.dump(corpus, open('corpus.pkl', 'wb'))
+    # dictionary.save('dictionary.gensim')
+
+    on_update(30)
 
     # Finding out the optimal number of topics
-    np.random.seed(50)
-    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
-    max_value = max(c_v)
-    max_index = c_v.index(max_value)
-    NUM_TOPICS = max_index + 1
-    # NUM_TOPICS = 4
+    # np.random.seed(50)
+    # lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
+    # max_value = max(c_v)
+    # max_index = c_v.index(max_value)
+    # NUM_TOPICS = max_index + 1
+    NUM_TOPICS = 4
+
+    on_update(50)
 
     # creo il modello con il NUM_TOPICS ottimale
     ldamodel = gensim.models.ldamulticore.LdaMulticore(corpus, num_topics=NUM_TOPICS, id2word=dictionary,
                                                        iterations=500)
+
+    on_update(70)
+
     # ldamodel.save('model5.gensim')
     topics = ldamodel.print_topics(num_words=6)
 
@@ -296,6 +311,8 @@ def reviews_absa(productId):
 
     # Compute Coherence Score using c_v
 
+    on_update(80)
+
     # calcolo la polarity del topic
     sentiment_scores = list()
     for topic, words in topics_words:
@@ -306,10 +323,12 @@ def reviews_absa(productId):
 
     generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList)
 
-    dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
-    corpus = pickle.load(open('corpus.pkl', 'rb'))
+    # dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
+    # corpus = pickle.load(open('corpus.pkl', 'rb'))
     lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
     lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
+
+    on_update(100)
 
     # plot lda
     pyLDAvis.show(lda_display10)
