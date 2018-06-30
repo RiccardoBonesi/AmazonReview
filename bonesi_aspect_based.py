@@ -13,7 +13,6 @@ from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 import matplotlib
-import pickle
 import warnings
 import nltk
 # nltk.download('wordnet')
@@ -95,7 +94,6 @@ def evaluate_graph(dictionary, corpus, texts, limit):
         lm_list.append(lm)
         cm = gensim.models.ldamodel.CoherenceModel(model=lm, texts=texts, dictionary=dictionary, coherence='c_v')
         c_v.append(cm.get_coherence())
-
 
     # Show graph
     x = range(1, limit)
@@ -239,7 +237,6 @@ def reviews_absa(productId, on_update=None):
     # B001LGGH40    338
     # B004ZIER34    330
 
-
     productList = ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
                    "B001LG945O", "B001LGGH40", "B004ZIER34"]
 
@@ -280,12 +277,14 @@ def reviews_absa(productId, on_update=None):
     on_update(30)
 
     # Finding out the optimal number of topics
-    # np.random.seed(50)
-    # lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
-    # max_value = max(c_v)
-    # max_index = c_v.index(max_value)
-    # NUM_TOPICS = max_index + 1
-    NUM_TOPICS = 4
+    np.random.seed(50)
+    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
+    max_value = max(c_v)
+    max_index = c_v.index(max_value)
+    NUM_TOPICS = max_index + 1
+    # NUM_TOPICS = 4
+
+    print("NUM TOPICS: {}".format(NUM_TOPICS))
 
     on_update(50)
 
@@ -307,7 +306,6 @@ def reviews_absa(productId, on_update=None):
     x = ldamodel.show_topics(num_topics=NUM_TOPICS, num_words=15, formatted=False)
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in x]
     # print(ldamodel.print_topic(2, 100))
-    # Below Code Prints Only Words
 
     # Compute Coherence Score using c_v
 
@@ -325,13 +323,13 @@ def reviews_absa(productId, on_update=None):
 
     # dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
     # corpus = pickle.load(open('corpus.pkl', 'rb'))
-    lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
-    lda_display10 = pyLDAvis.gensim.prepare(lda10, corpus, dictionary, sort_topics=True)
+    # lda10 = gensim.models.ldamodel.LdaModel.load('model5.gensim')
+    lda_display = pyLDAvis.gensim.prepare(ldamodel, corpus, dictionary, sort_topics=True)
 
     on_update(100)
 
     # plot lda
-    pyLDAvis.show(lda_display10)
+    pyLDAvis.show(lda_display)
 
     # print("saving LDA...")
     # pyLDAvis.save_html(lda_display10, 'LDA/lda_display10' + productId )
