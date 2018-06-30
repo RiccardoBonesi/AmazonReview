@@ -24,8 +24,9 @@ def exploratory_data_analysis(df):
 
     # creo un nuovo attributo opinion
     # negative = review(1-3), positive=(4-5)
+    df.ix[df.score == 3, 'opinion'] = "neutral"
     df.ix[df.score > 3, 'opinion'] = "positive"
-    df.ix[df.score <= 3, 'opinion'] = "negative"
+    df.ix[df.score < 3, 'opinion'] = "negative"
 
     ## opinion distribution
     ax = plt.axes()
@@ -46,7 +47,8 @@ def exploratory_data_analysis(df):
     # plt.show()
 
     print("Proportion of positive review:", len(df[df.opinion == "positive"]) / len(df))
-    print("Proportion of positive review:", len(df[df.opinion == "negative"]) / len(df))
+    print("Proportion of neutral review:", len(df[df.opinion == "neutral"]) / len(df))
+    print("Proportion of negative review:", len(df[df.opinion == "negative"]) / len(df))
     # 77% of the fine food reviews are considered as positive
     # and 23% of them are considered as negative.
 
