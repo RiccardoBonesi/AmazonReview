@@ -1,3 +1,5 @@
+from pyLDAvis import sklearn
+
 from dataset_utils import *
 
 import gensim
@@ -18,6 +20,37 @@ import nltk
 # nltk.download('wordnet')
 from nltk.corpus import wordnet as wn
 import os
+from sklearn.metrics import precision_recall_fscore_support as score
+import itertools
+
+
+import sklearn
+import sklearn.metrics
+from sklearn import svm, datasets
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import precision_recall_fscore_support as score
+import gensim
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import pyLDAvis.gensim
+from sklearn import svm
+import seaborn as sns
+from gensim import corpora
+from spacy.lang.en import English
+from textblob import TextBlob
+from wordcloud import WordCloud
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
+from sklearn.model_selection import train_test_split
+from wordcloud import WordCloud,STOPWORDS
+import matplotlib
+
+from nltk.stem.wordnet import WordNetLemmatizer
+
+
+
 
 warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 
@@ -212,6 +245,231 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
     plt.show()
 
 
+
+def plot_confusion_matrix(cm, classes,
+                          normalize=False,
+                          title='Confusion matrix',
+                          cmap=plt.cm.Blues):
+    """
+    This function prints and plots the confusion matrix.
+    Normalization can be applied by setting `normalize=True`.
+    """
+    if normalize:
+        cm = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+        print("Normalized confusion matrix")
+    else:
+        print('Confusion matrix, without normalization')
+
+    print(cm)
+
+    plt.imshow(cm, interpolation='nearest', cmap=cmap)
+    plt.title(title)
+    plt.colorbar()
+    tick_marks = np.arange(len(classes))
+    plt.xticks(tick_marks, classes, rotation=45)
+    plt.yticks(tick_marks, classes)
+
+    fmt = '.2f' if normalize else 'd'
+    thresh = cm.max() / 2.
+    for i, j in itertools.product(range(cm.shape[0]), range(cm.shape[1])):
+        plt.text(j, i, format(cm[i, j], fmt),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > thresh else "black")
+
+    plt.tight_layout()
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.show()
+
+
+
+def classification_train_test(df):
+    stop = stopwords.words('english')
+    from sklearn.model_selection import train_test_split
+    for index, row in df.iterrows():
+        word_tokens = word_tokenize(row.cleanedtext)
+
+        filtered_sentence = [w for w in word_tokens if not w in stop]
+
+        filtered_sentence = []
+
+        for w in word_tokens:
+            if w not in stop:
+                filtered_sentence.append(w)
+
+        # print(word_tokens)
+        # print(filtered_sentence)
+
+        df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
+    sentiment_scores = list()
+    i = 0
+    for sentence in df.cleanedtext:
+        line = TextBlob(sentence)
+        sentiment_scores.append(line.sentiment.polarity)
+        # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
+    df['polarity'] = sentiment_scores
+    df['positive'] = df.PosNeg.apply(lambda x: 1 if x == 'positive' else 0)
+    X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0)
+    # print('X_train first entry: \n\n', X_train.first)
+    print('\n\nX_train shape: ', X_train.shape)
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0)
+    # print('X_train first entry: \n\n', X_train[0])
+    class_names = df['positive']
+    print('\n\nX_train shape: ', X_train.shape)
+    from sklearn.feature_extraction.text import CountVectorizer
+    vect = CountVectorizer().fit(X_train)
+    vect
+    vect.get_feature_names()[::2000]
+    len(vect.get_feature_names())
+    X_train_vectorized = vect.transform(X_train)
+    X_train_vectorized
+    X_train_vectorized.toarray()
+    from sklearn.linear_model import LogisticRegression
+    model = LogisticRegression()
+    model.fit(X_train_vectorized, y_train)
+    from sklearn.metrics import roc_auc_score
+    predictions = model.predict(vect.transform(X_test))
+    from sklearn.metrics import confusion_matrix
+    precision, recall, fscore, support = score(y_test, predictions)
+    accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
+    print("accuracy: " + str(accuracy))
+    print('AUC: ', roc_auc_score(y_test, predictions))
+    conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
+    plt.figure(num=None, figsize=(8, 6), dpi=80)
+    plot_confusion_matrix(
+        conf_mat_a,
+        list(map(str, range(max(y_test)))),
+        normalize=True
+    )
+    plt.savefig('confusionMatrix.png')
+    plt.show()
+    feature_names = np.array(vect.get_feature_names())
+    sorted_coef_index = model.coef_[0].argsort()
+    print('Smallest Coefs: \n{}\n'.format(feature_names[sorted_coef_index[:10]]))
+    print('Largest Coefs: \n{}\n'.format(feature_names[sorted_coef_index[:-11:-1]]))
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    vect = TfidfVectorizer(min_df=5).fit(X_train)
+    len(vect.get_feature_names())
+    X_train_vectorized = vect.transform(X_train)
+    model = LogisticRegression()
+    model.fit(X_train_vectorized, y_train)
+    predictions = model.predict(vect.transform(X_test))
+    precision, recall, fscore, support = score(y_test, predictions)
+    accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
+    print("accuracy: " + str(accuracy))
+    print('AUC: ', roc_auc_score(y_test, predictions))
+    conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
+    plt.figure(num=None, figsize=(8, 6), dpi=80)
+    plot_confusion_matrix(
+        conf_mat_a,
+        list(map(str, range(max(y_test)))),
+        normalize=True
+    )
+    plt.savefig('confusionMatrix.png')
+    plt.show()
+    print('AUC: ', roc_auc_score(y_test, predictions))
+    feature_names = np.array(vect.get_feature_names())
+    sorted_tfidf_index = X_train_vectorized.max(0).toarray()[0].argsort()
+    print('Smallest Tfidf: \n{}\n'.format(feature_names[sorted_tfidf_index[:10]]))
+    print('Largest Tfidf: \n{}\n'.format(feature_names[sorted_tfidf_index[:-11:-1]]))
+    vect = CountVectorizer(min_df=5, ngram_range=(1, 2)).fit(X_train)
+    X_train_vectorized = vect.transform(X_train)
+    len(vect.get_feature_names())
+    model = LogisticRegression()
+    model.fit(X_train_vectorized, y_train)
+    predictions = model.predict(vect.transform(X_test))
+    precision, recall, fscore, support = score(y_test, predictions)
+    accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
+    print("accuracy: " + str(accuracy))
+    print('AUC: ', roc_auc_score(y_test, predictions))
+    conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
+    plt.figure(num=None, figsize=(8, 6), dpi=80)
+    plot_confusion_matrix(
+        conf_mat_a,
+        list(map(str, range(max(y_test)))),
+        normalize=True
+    )
+    plt.savefig('confusionMatrix.png')
+    plt.show()
+    print('AUC: ', roc_auc_score(y_test, predictions))
+    feature_names = np.array(vect.get_feature_names())
+    sorted_coef_index = model.coef_[0].argsort()
+    print('Smallest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:10]))
+    print('Largest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:-11:-1]))
+    print("ciao")
+
+
+def polarity_score_confronto(df):
+    stop = stopwords.words('english')
+    # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
+    for index, row in df.iterrows():
+        word_tokens = word_tokenize(row.cleanedtext)
+
+        filtered_sentence = [w for w in word_tokens if not w in stop]
+
+        filtered_sentence = []
+
+        for w in word_tokens:
+            if w not in stop:
+                filtered_sentence.append(w)
+
+        # print(word_tokens)
+        # print(filtered_sentence)
+
+        df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
+    sentiment_scores = list()
+    i = 0
+    for sentence in df.cleanedtext:
+        line = TextBlob(sentence)
+        sentiment_scores.append(line.sentiment.polarity)
+        # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
+    df['polarity'] = sentiment_scores
+    normalized_polarity = 2 * (df['polarity'] - df['polarity'].min()) / (
+                df['polarity'].max() - df['polarity'].min()) - 1
+    normalized_score = 2 * (df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min()) - 1
+    sns.distplot(normalized_polarity)
+    sns.distplot(normalized_score)
+    plt.show()
+    # PLOT POSITIVE
+    normalized_polarity = df[df['PosNeg'] == 'positive'].polarity
+    normalized_score = (df[df['PosNeg'] == 'positive'].score - df[df['PosNeg'] == 'positive'].score.min()) / (
+            df[df['PosNeg'] == 'positive'].score.max() - df[df['PosNeg'] == 'positive'].score.min()) + 0.5
+    sns.distplot(normalized_polarity, kde=False)
+    sns.distplot(normalized_score, kde=False)
+    #
+    normalized_polarity = df[df['PosNeg'] == 'negative'].polarity
+    normalized_score = (df[df['PosNeg'] == 'negative'].score - df[df['PosNeg'] == 'negative'].score.min()) / (
+            df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min()) - 1
+    sns.distplot(normalized_polarity, kde=False)
+    sns.distplot(normalized_score, kde=False)
+    plt.show()
+    # TODO FINE parte negativa e positiva, qua sotto correlazione
+    print(np.corrcoef(df.score, df.polarity))
+    matplotlib.style.use('ggplot')
+    plt.scatter(df.score, df.polarity)
+    plt.show()
+    df.reset_index()
+    return stop
+
+
+
+def reviews_sentiment():
+    try:
+        df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
+    except:
+        df = generate_df()
+
+    df = df.dropna()
+
+    classification_train_test(df)
+    polarity_score_confronto(df)
+
+
+
+
+
+
 def reviews_absa(productId, on_update=None):
     # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
 
@@ -345,7 +603,10 @@ def reviews_absa(productId, on_update=None):
 
 
 if __name__ == "__main__":
-    reviews_absa(0)
+    # reviews_absa(0)
+
+    reviews_sentiment()
+
 
     # for a in range(9):
     #     reviews_absa(a)
