@@ -245,22 +245,24 @@ def reviews_absa(productId, on_update=None):
     on_update(10)
 
     reviews = df.cleanedtext.values
-    # grammi
-    text_data = []
-    for r in reviews:
-        tokens = prepare_text_for_lda(r)
-        # print(tokens)
-        text_data.append(tokens)
-    # birammi
+
+    # monogrammi
     # text_data = []
     # for r in reviews:
     #     tokens = prepare_text_for_lda(r)
-    #     print(tokens)
-    #     bigram = list(nltk.bigrams(tokens))
-    #     tokens = []
-    #     for i in bigram:
-    #         tokens.append((''.join([w + ' ' for w in i])).strip())
+    #     # print(tokens)
     #     text_data.append(tokens)
+
+    # birammi
+    text_data = []
+    for r in reviews:
+        tokens = prepare_text_for_lda(r)
+        print(tokens)
+        bigram = list(nltk.bigrams(tokens))
+        tokens = []
+        for i in bigram:
+            tokens.append((''.join([w + ' ' for w in i])).strip())
+        text_data.append(tokens)
 
     # LDA with Gensim
     # First, we are creating a dictionary from the data,
@@ -298,10 +300,10 @@ def reviews_absa(productId, on_update=None):
     topics = ldamodel.print_topics(num_words=6)
 
     # calcolo coherence value
-    value = gensim.models.coherencemodel.CoherenceModel(model=ldamodel, texts=text_data, dictionary=dictionary,
-                                                        coherence='c_v')
-    coherence_lda = value.get_coherence()
-    print('\nCoherence Score: ', coherence_lda)
+    # value = gensim.models.coherencemodel.CoherenceModel(model=ldamodel, texts=text_data, dictionary=dictionary,
+    #                                                     coherence='c_v')
+    # coherence_lda = value.get_coherence()
+    # print('\nCoherence Score: ', coherence_lda)
 
     x = ldamodel.show_topics(num_topics=NUM_TOPICS, num_words=15, formatted=False)
     topics_words = [(tp[0], [wd[0] for wd in tp[1]]) for tp in x]
@@ -320,6 +322,10 @@ def reviews_absa(productId, on_update=None):
         # print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
 
     generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList)
+
+
+    print("TOPICS")
+    print(ldamodel.print_topics(num_topics=NUM_TOPICS, num_words=3))
 
     # dictionary = gensim.corpora.Dictionary.load('dictionary.gensim')
     # corpus = pickle.load(open('corpus.pkl', 'rb'))
