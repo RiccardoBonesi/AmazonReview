@@ -606,7 +606,7 @@ def reviews_absa(productId, on_update=None):
     on_update(20)
 
     dictionary = corpora.Dictionary(text_data)
-    dictionary.filter_n_most_frequent(len(freqword))
+    # dictionary.filter_n_most_frequent(len(freqword))
     dictionary.filter_extremes(no_below=10, no_above=0.5)
     corpus = [dictionary.doc2bow(text) for text in text_data]
     # pickle.dump(corpus, open('corpus.pkl', 'wb'))
@@ -616,11 +616,11 @@ def reviews_absa(productId, on_update=None):
 
     # Finding out the optimal number of topics
     np.random.seed(50)
-    # lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
-    # max_value = max(c_v)
-    # max_index = c_v.index(max_value)
-    # NUM_TOPICS = max_index + 1
-    NUM_TOPICS = 4
+    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
+    max_value = max(c_v)
+    max_index = c_v.index(max_value)
+    NUM_TOPICS = max_index + 1
+    # NUM_TOPICS = 4
 
     print("NUM TOPICS: {}".format(NUM_TOPICS))
 
