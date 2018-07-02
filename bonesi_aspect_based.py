@@ -568,9 +568,27 @@ def reviews_absa(productId, on_update=None):
     # print(ldamodel.print_topic(2, 100))
 
     # Compute Coherence Score using c_v
-
+    r_list=[]
+    prob_list=[]
+    topic_list=[]
+    for r in text_data:
+        bow = dictionary.doc2bow(r)
+        t = ldamodel.get_document_topics(bow)
+        maxval = list(max(t, key=lambda i: i[1]))
+        minval = list(min(t, key=lambda i: i[1]))
+        print(t)
+        print(maxval)
+        print(minval)
+        if(maxval[1]==minval[1]):
+            maxval[0] = 0
+        else:
+            maxval[0] = maxval[0]+1
+        r_list.append(r)
+        prob_list.append(maxval[1])
+        topic_list.append(maxval[0])
     on_update(80)
 
+    df_final = pd.DataFrame(data={'review':r_list,'probability':prob_list,'topic_no':topic_list})
     # calcolo la polarity del topic
     sentiment_scores = list()
     for topic, words in topics_words:
