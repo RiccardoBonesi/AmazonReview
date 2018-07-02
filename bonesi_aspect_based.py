@@ -277,9 +277,14 @@ def plot_confusion_matrix(cm, classes,
     plt.show()
 
 
-def classification_train_test(df):
+def classification_train_test(df, on_update=None):
     stop = stopwords.words('english')
     from sklearn.model_selection import train_test_split
+
+    x =10
+
+    y = on_update(x)
+
     for index, row in df.iterrows():
         word_tokens = word_tokenize(row.cleanedtext)
 
@@ -291,16 +296,30 @@ def classification_train_test(df):
             if w not in stop:
                 filtered_sentence.append(w)
 
+
+        x = x+0.0003
+        on_update(x)
+
+
         # print(word_tokens)
         # print(filtered_sentence)
 
         df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
+
+
+
     sentiment_scores = list()
     i = 0
+
+    on_update(25)
+
     for sentence in df.cleanedtext:
         line = TextBlob(sentence)
         sentiment_scores.append(line.sentiment.polarity)
         # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
+
+    on_update(30)
+
     df['polarity'] = sentiment_scores
     df['positive'] = df.PosNeg.apply(lambda x: 1 if x == 'positive' else 0)
     X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0)
@@ -315,6 +334,9 @@ def classification_train_test(df):
     vect = CountVectorizer().fit(X_train)
     vect
     vect.get_feature_names()[::2000]
+
+    on_update(35)
+
     len(vect.get_feature_names())
     X_train_vectorized = vect.transform(X_train)
     X_train_vectorized
@@ -336,6 +358,9 @@ def classification_train_test(df):
         list(map(str, range(max(y_test)))),
         normalize=True
     )
+
+    on_update(40)
+
     plt.savefig('confusionMatrix.png')
     plt.show()
     feature_names = np.array(vect.get_feature_names())
@@ -377,6 +402,9 @@ def classification_train_test(df):
     accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
     print("accuracy: " + str(accuracy))
     print('AUC: ', roc_auc_score(y_test, predictions))
+
+    on_update(45)
+
     conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
     plt.figure(num=None, figsize=(8, 6), dpi=80)
     plot_confusion_matrix(
@@ -394,9 +422,15 @@ def classification_train_test(df):
     print("ciao")
 
 
-def polarity_score_confronto(df):
+    on_update(50)
+
+
+def polarity_score_confronto(df, on_update = 50):
     stop = stopwords.words('english')
     # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
+
+    on_update(55)
+
     for index, row in df.iterrows():
         word_tokens = word_tokenize(row.cleanedtext)
 
@@ -413,6 +447,10 @@ def polarity_score_confronto(df):
 
         df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
     sentiment_scores = list()
+
+    on_update(65)
+
+
     i = 0
     for sentence in df.cleanedtext:
         line = TextBlob(sentence)
@@ -420,10 +458,13 @@ def polarity_score_confronto(df):
         # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
     df['polarity'] = sentiment_scores
     normalized_polarity = 2 * (df['polarity'] - df['polarity'].min()) / (
-            df['polarity'].max() - df['polarity'].min()) - 1
+                df['polarity'].max() - df['polarity'].min()) - 1
     normalized_score = 2 * (df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min()) - 1
     sns.distplot(normalized_polarity)
     sns.distplot(normalized_score)
+
+    on_update(70)
+
     plt.show()
     # PLOT POSITIVE
     normalized_polarity = df[df['PosNeg'] == 'positive'].polarity
@@ -432,22 +473,31 @@ def polarity_score_confronto(df):
     sns.distplot(normalized_polarity, kde=False)
     sns.distplot(normalized_score, kde=False)
     #
+
+    on_update(80)
+
     normalized_polarity = df[df['PosNeg'] == 'negative'].polarity
     normalized_score = (df[df['PosNeg'] == 'negative'].score - df[df['PosNeg'] == 'negative'].score.min()) / (
             df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min()) - 1
     sns.distplot(normalized_polarity, kde=False)
     sns.distplot(normalized_score, kde=False)
     plt.show()
+
+    on_update(90)
+
     # TODO FINE parte negativa e positiva, qua sotto correlazione
     print(np.corrcoef(df.score, df.polarity))
     matplotlib.style.use('ggplot')
     plt.scatter(df.score, df.polarity)
     plt.show()
     df.reset_index()
+
+    on_update(100)
+
     return stop
 
 
-def reviews_sentiment():
+def reviews_sentiment(**parameters):
     try:
         df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     except:
@@ -455,8 +505,8 @@ def reviews_sentiment():
 
     df = df.dropna()
 
-    classification_train_test(df)
-    polarity_score_confronto(df)
+    classification_train_test(df, **parameters)
+    polarity_score_confronto(df, **parameters)
 
 
 def reviews_absa(productId, on_update=None):
@@ -494,10 +544,21 @@ def reviews_absa(productId, on_update=None):
     reviews = df.cleanedtext.values
 
     # monogrammi
+    # text_data = []
+    # for r in reviews:
+    #     tokens = prepare_text_for_lda(r)
+    #     # print(tokens)
+    #     text_data.append(tokens)
+
+    # birammi
     text_data = []
     for r in reviews:
         tokens = prepare_text_for_lda(r)
-        # print(tokens)
+        print(tokens)
+        bigram = list(nltk.bigrams(tokens))
+        tokens = []
+        for i in bigram:
+            tokens.append((''.join([w + ' ' for w in i])).strip())
         text_data.append(tokens)
 
     wholetext = list(itertools.chain.from_iterable(text_data))
@@ -572,9 +633,27 @@ def reviews_absa(productId, on_update=None):
     # print(ldamodel.print_topic(2, 100))
 
     # Compute Coherence Score using c_v
-
+    r_list=[]
+    prob_list=[]
+    topic_list=[]
+    for r in text_data:
+        bow = dictionary.doc2bow(r)
+        t = ldamodel.get_document_topics(bow)
+        maxval = list(max(t, key=lambda i: i[1]))
+        minval = list(min(t, key=lambda i: i[1]))
+        print(t)
+        print(maxval)
+        print(minval)
+        if(maxval[1]==minval[1]):
+            maxval[0] = 0
+        else:
+            maxval[0] = maxval[0]+1
+        r_list.append(r)
+        prob_list.append(maxval[1])
+        topic_list.append(maxval[0])
     on_update(80)
 
+    df_final = pd.DataFrame(data={'review':r_list,'probability':prob_list,'topic_no':topic_list})
     # calcolo la polarity del topic
     sentiment_scores = list()
     for topic, words in topics_words:

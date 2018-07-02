@@ -150,7 +150,7 @@ class App(QWidget):
         print("PRODUCT: {}".format(self.product))
 
         if self.method == 1:
-            reviews_sentiment()
+            reviews_sentiment(**parameters)
         else:
             reviews_absa(self.product, **parameters)
 
