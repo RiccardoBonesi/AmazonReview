@@ -515,7 +515,8 @@ def reviews_sentiment(**parameters):
     classification_train_test(df, **parameters)
     polarity_score_confronto(df, **parameters)
 
-
+def join_bigram(l):
+    return " ".join([i.split()[0] for i in l])
 
 
 
@@ -636,16 +637,33 @@ def reviews_absa(productId, on_update=None):
         r_list.append(r)
         prob_list.append(maxval[1])
         topic_list.append(maxval[0])
+
+    #TODO SENTIMENT PER TOPI CA DATAFRAME DFFINAL
     on_update(80)
 
     df_final = pd.DataFrame(data={'review':r_list,'probability':prob_list,'topic_no':topic_list})
+    for current_topic in df_final.topic_no.unique():
+
+        text_reviews = [join_bigram(i) for i in df_final.loc[df_final['topic_no'] == current_topic].review]
+        sentiment_scores = list()
+        for current_topic_reviews in text_reviews:
+            print(current_topic_reviews)
+            if (current_topic_reviews != ''):
+                line = TextBlob(current_topic_reviews)
+                sentiment_scores.append(line.sentiment.polarity)
+                print(current_topic_reviews + ": POLARITY=" + str(line.sentiment.polarity))
+        #TODO per bonesi: qui ci sono le polarity di ogni topic: la prima polarity è quella generale
+        print(np.mean(sentiment_scores))
+        print("dsdf")
+    # from IPython import embed; embed()
+    # text_reviews = [join_bigram(i) for i in df_final.review]
     # calcolo la polarity del topic
-    sentiment_scores = list()
-    for topic, words in topics_words:
-        print(" ".join(words))
-        line = TextBlob(" ".join(words))
-        sentiment_scores.append(line.sentiment.polarity)
-        # print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
+    # sentiment_scores = list()
+    # for topic, words in topics_words:
+    #     print(" ".join(words))
+    #     line = TextBlob(" ".join(words))
+    #     sentiment_scores.append(line.sentiment.polarity)
+    #     print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
 
     generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList)
 
