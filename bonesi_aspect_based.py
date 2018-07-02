@@ -23,7 +23,6 @@ import os
 from sklearn.metrics import precision_recall_fscore_support as score
 import itertools
 
-
 import sklearn
 import sklearn.metrics
 from sklearn import svm, datasets
@@ -44,13 +43,10 @@ from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sklearn.model_selection import train_test_split
-from wordcloud import WordCloud,STOPWORDS
+from wordcloud import WordCloud, STOPWORDS
 import matplotlib
 
 from nltk.stem.wordnet import WordNetLemmatizer
-
-
-
 
 warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 
@@ -235,7 +231,7 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
 
     for t in range(NUM_TOPICS):
         ax = plt.subplot(index)
-        wordcloud = WordCloud(width=800, height=400).generate(ldamodel.print_topic(t, 10))
+        wordcloud = WordCloud(width=800, height=400).generate(ldamodel.print_topic(t, 20))
         ax.imshow(wordcloud, aspect="equal")
         ax.axis("off")
         index += 1
@@ -243,7 +239,6 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
     plt.suptitle(productList[productId])
     plt.tight_layout(pad=0)
     plt.show()
-
 
 
 def plot_confusion_matrix(cm, classes,
@@ -280,7 +275,6 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.show()
-
 
 
 def classification_train_test(df):
@@ -426,7 +420,7 @@ def polarity_score_confronto(df):
         # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
     df['polarity'] = sentiment_scores
     normalized_polarity = 2 * (df['polarity'] - df['polarity'].min()) / (
-                df['polarity'].max() - df['polarity'].min()) - 1
+            df['polarity'].max() - df['polarity'].min()) - 1
     normalized_score = 2 * (df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min()) - 1
     sns.distplot(normalized_polarity)
     sns.distplot(normalized_score)
@@ -453,7 +447,6 @@ def polarity_score_confronto(df):
     return stop
 
 
-
 def reviews_sentiment():
     try:
         df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
@@ -464,10 +457,6 @@ def reviews_sentiment():
 
     classification_train_test(df)
     polarity_score_confronto(df)
-
-
-
-
 
 
 def reviews_absa(productId, on_update=None):
@@ -505,22 +494,36 @@ def reviews_absa(productId, on_update=None):
     reviews = df.cleanedtext.values
 
     # monogrammi
-    # text_data = []
-    # for r in reviews:
-    #     tokens = prepare_text_for_lda(r)
-    #     # print(tokens)
-    #     text_data.append(tokens)
-
-    # birammi
     text_data = []
     for r in reviews:
         tokens = prepare_text_for_lda(r)
-        print(tokens)
-        bigram = list(nltk.bigrams(tokens))
-        tokens = []
-        for i in bigram:
-            tokens.append((''.join([w + ' ' for w in i])).strip())
+        # print(tokens)
         text_data.append(tokens)
+
+    wholetext = list(itertools.chain.from_iterable(text_data))
+    text = nltk.Text(wholetext)
+    # Calculate Frequency distribution
+    freq = nltk.FreqDist(text)
+    metadb = df.shape[0]*0.4
+    # Print and plot most common words
+    lenfreq = freq.most_common(20)
+    freqword = []
+    for i in lenfreq:
+        if i[1] > metadb:
+            freqword.append(i[0])
+
+    freq.plot(10)
+
+    # birammi
+    # text_data = []
+    # for r in reviews:
+    #     tokens = prepare_text_for_lda(r)
+    #     print(tokens)
+    #     bigram = list(nltk.bigrams(tokens))
+    #     tokens = []
+    #     for i in bigram:
+    #         tokens.append((''.join([w + ' ' for w in i])).strip())
+    #     text_data.append(tokens)
 
     # LDA with Gensim
     # First, we are creating a dictionary from the data,
@@ -529,7 +532,8 @@ def reviews_absa(productId, on_update=None):
     on_update(20)
 
     dictionary = corpora.Dictionary(text_data)
-    dictionary.filter_extremes(no_below=10, no_above=0.50)
+    dictionary.filter_n_most_frequent(len(freqword))
+    dictionary.filter_extremes(no_below=10, no_above=0.5)
     corpus = [dictionary.doc2bow(text) for text in text_data]
     # pickle.dump(corpus, open('corpus.pkl', 'wb'))
     # dictionary.save('dictionary.gensim')
@@ -538,11 +542,11 @@ def reviews_absa(productId, on_update=None):
 
     # Finding out the optimal number of topics
     np.random.seed(50)
-    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
-    max_value = max(c_v)
-    max_index = c_v.index(max_value)
-    NUM_TOPICS = max_index + 1
-    # NUM_TOPICS = 4
+    # lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
+    # max_value = max(c_v)
+    # max_index = c_v.index(max_value)
+    # NUM_TOPICS = max_index + 1
+    NUM_TOPICS = 4
 
     print("NUM TOPICS: {}".format(NUM_TOPICS))
 
@@ -581,7 +585,6 @@ def reviews_absa(productId, on_update=None):
 
     generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList)
 
-
     print("TOPICS")
     print(ldamodel.print_topics(num_topics=NUM_TOPICS, num_words=3))
 
@@ -606,7 +609,6 @@ if __name__ == "__main__":
     # reviews_absa(0)
 
     reviews_sentiment()
-
 
     # for a in range(9):
     #     reviews_absa(a)
