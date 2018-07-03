@@ -548,7 +548,7 @@ def reviews_absa(productId, on_update=None):
     # B004ZIER34    330
 
     productList = ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
-                   "B001LG945O", "B001LGGH40", "B004ZIER34"]
+                   "B001LG945O", "B001LGGH40", "B004ZIER34" , "B00141UC9I", "B001AJ1ULS" ,"B000KV61FC"]
 
     df = df.loc[df['productid'] == productList[productId]]
 
@@ -675,14 +675,14 @@ def reviews_absa(productId, on_update=None):
         text_reviews = [join_bigram(i) for i in df_final.loc[df_final['topic_no'] == current_topic].review]
         sentiment_scores = list()
         for current_topic_reviews in text_reviews:
-            print(current_topic_reviews)
+            # print(current_topic_reviews)
             if (current_topic_reviews != ''):
                 line = TextBlob(current_topic_reviews)
                 sentiment_scores.append(line.sentiment.polarity)
-                print(current_topic_reviews + ": POLARITY=" + str(line.sentiment.polarity))
+                # print(current_topic_reviews + ": POLARITY=" + str(line.sentiment.polarity))
         #TODO per bonesi: qui ci sono le polarity di ogni topic: la prima polarity è quella generale
         print(np.mean(sentiment_scores))
-        print("dsdf")
+        print("Current Topic = {}".format(current_topic))
     # from IPython import embed; embed()
     # text_reviews = [join_bigram(i) for i in df_final.review]
     # calcolo la polarity del topic

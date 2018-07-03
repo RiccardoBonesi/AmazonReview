@@ -185,6 +185,23 @@ def vocabulary_reduction(reviews, labels, min_freq=10, polarity_cut_off=0.1):
 
 if __name__ == "__main__":
     df = pd.read_csv("Dataset/food.tsv", sep="\t", encoding='latin-1')
+
+    # recensioni negative
+    df = df.loc[df['score'] == (1 or 2)]
+    df = df.groupby('productid').agg(['mean','count'])
+
+
+
+    print("ciao")
+
+    asd = df.groupby('productid').score.mean().reset_index()
+    asd2 = df.productid.value_counts()
+    asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
+    asd4 = asd3.sort_values('score')
+    df1 = df.loc[df['productid'] == "B001E96JY2"]
+
+
+
     # df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     exploratory_data_analysis(df)
     # data_preprocessing(df)
