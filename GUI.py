@@ -77,7 +77,7 @@ class App(QWidget):
         self.comboBox.setFont(font)
         self.comboBox.addItems(
             ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
-             "B001LG945O", "B001LGGH40", "B004ZIER34"])
+             "B001LG945O", "B001LGGH40", "B004ZIER34", "B00141UC9I", "B001AJ1ULS" ,"B000KV61FC"])
         self.comboBox.currentIndexChanged.connect(self.set_product)
 
         self.startButton = QPushButton(self)

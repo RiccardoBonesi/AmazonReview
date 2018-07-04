@@ -23,6 +23,7 @@ import os
 from sklearn.metrics import precision_recall_fscore_support as score
 import itertools
 
+
 import sklearn
 import sklearn.metrics
 from sklearn import svm, datasets
@@ -43,10 +44,13 @@ from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sklearn.model_selection import train_test_split
-from wordcloud import WordCloud, STOPWORDS
+from wordcloud import WordCloud,STOPWORDS
 import matplotlib
 
 from nltk.stem.wordnet import WordNetLemmatizer
+
+
+
 
 warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 
@@ -99,6 +103,9 @@ def prepare_text_for_lda(text):
     tokens = [get_lemma(token) for token in tokens]
     return tokens
 
+
+def join_bigram(l):
+    return " ".join([i.split()[0] for i in l])
 
 def evaluate_graph(dictionary, corpus, texts, limit):
     """
@@ -248,6 +255,7 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
     plt.show()
 
 
+
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
                           title='Confusion matrix',
@@ -282,6 +290,7 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.show()
+
 
 
 def classification_train_test(df, on_update=None):
@@ -498,6 +507,7 @@ def polarity_score_confronto(df, on_update=50):
     return stop
 
 
+
 def reviews_sentiment(**parameters):
     try:
         df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
@@ -508,6 +518,9 @@ def reviews_sentiment(**parameters):
 
     classification_train_test(df, **parameters)
     polarity_score_confronto(df, **parameters)
+
+
+
 
 
 def reviews_absa(productId, on_update=None):
@@ -536,7 +549,7 @@ def reviews_absa(productId, on_update=None):
     # B004ZIER34    330
 
     productList = ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
-                   "B001LG945O", "B001LGGH40", "B004ZIER34"]
+                   "B001LG945O", "B001LGGH40", "B004ZIER34" , "B00141UC9I", "B001AJ1ULS" ,"B000KV61FC"]
 
     df = df.loc[df['productid'] == productList[productId]]
 
@@ -594,7 +607,7 @@ def reviews_absa(productId, on_update=None):
     on_update(20)
 
     dictionary = corpora.Dictionary(text_data)
-    dictionary.filter_n_most_frequent(len(freqword))
+    # dictionary.filter_n_most_frequent(len(freqword))
     dictionary.filter_extremes(no_below=10, no_above=0.5)
     corpus = [dictionary.doc2bow(text) for text in text_data]
     # pickle.dump(corpus, open('corpus.pkl', 'wb'))
@@ -652,16 +665,42 @@ def reviews_absa(productId, on_update=None):
         r_list.append(r)
         prob_list.append(maxval[1])
         topic_list.append(maxval[0])
+
+    #TODO SENTIMENT PER TOPIC A DATAFRAME DFFINAL
     on_update(80)
 
     df_final = pd.DataFrame(data={'review': r_list, 'probability': prob_list, 'topic_no': topic_list})
+
+    for current_topic in df_final.topic_no.unique():
+
+        text_reviews = [join_bigram(i) for i in df_final.loc[df_final['topic_no'] == current_topic].review]
+        sentiment_scores = list()
+        for current_topic_reviews in text_reviews:
+            # print(current_topic_reviews)
+            if (current_topic_reviews != ''):
+                line = TextBlob(current_topic_reviews)
+                sentiment_scores.append(line.sentiment.polarity)
+                # print(current_topic_reviews + ": POLARITY=" + str(line.sentiment.polarity))
+        #TODO per bonesi: qui ci sono le polarity di ogni topic: la prima polarity è quella generale
+        print(np.mean(sentiment_scores))
+        print("Current Topic = {}".format(current_topic))
+    # from IPython import embed; embed()
+    # text_reviews = [join_bigram(i) for i in df_final.review]
     # calcolo la polarity del topic
-    sentiment_scores = list()
-    for topic, words in topics_words:
-        print(" ".join(words))
-        line = TextBlob(" ".join(words))
-        sentiment_scores.append(line.sentiment.polarity)
-        # print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
+    # sentiment_scores = list()
+    # for topic, words in topics_words:
+    #     print(" ".join(words))
+    #     line = TextBlob(" ".join(words))
+    #     sentiment_scores.append(line.sentiment.polarity)
+    #     print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
+
+    # calcolo la polarity del topic
+    # sentiment_scores = list()
+    # for topic, words in topics_words:
+    #     print(" ".join(words))
+    #     line = TextBlob(" ".join(words))
+    #     sentiment_scores.append(line.sentiment.polarity)
+    #     # print(" ".join(words) + ": POLARITY=" + str(line.sentiment.polarity))
 
     generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList)
 
