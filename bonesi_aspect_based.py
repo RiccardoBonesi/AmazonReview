@@ -1,7 +1,7 @@
 from pyLDAvis import sklearn
-
+import re
 from dataset_utils import *
-
+from nltk import sent_tokenize, word_tokenize, pos_tag, ne_chunk
 import gensim
 import matplotlib.pyplot as plt
 import numpy as np
@@ -231,7 +231,14 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
 
     for t in range(NUM_TOPICS):
         ax = plt.subplot(index)
-        wordcloud = WordCloud(width=800, height=400).generate(ldamodel.print_topic(t, 20))
+
+        textentity = ldamodel.show_topic(t, topn=20)
+        # textentity2 = re.findall(r'"([^"]*)"', textentity[t][1])
+        nt = []
+        for a in textentity:
+            nt.append(a[0].replace(" ", "_"))
+
+        wordcloud = WordCloud(width=800, height=400).generate(" ".join(nt))
         ax.imshow(wordcloud, aspect="equal")
         ax.axis("off")
         index += 1
@@ -281,7 +288,7 @@ def classification_train_test(df, on_update=None):
     stop = stopwords.words('english')
     from sklearn.model_selection import train_test_split
 
-    x =10
+    x = 10
 
     y = on_update(x)
 
@@ -296,17 +303,13 @@ def classification_train_test(df, on_update=None):
             if w not in stop:
                 filtered_sentence.append(w)
 
-
-        x = x+0.0003
+        x = x + 0.0003
         on_update(x)
-
 
         # print(word_tokens)
         # print(filtered_sentence)
 
         df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
-
-
 
     sentiment_scores = list()
     i = 0
@@ -421,11 +424,10 @@ def classification_train_test(df, on_update=None):
     print('Largest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:-11:-1]))
     print("ciao")
 
-
     on_update(50)
 
 
-def polarity_score_confronto(df, on_update = 50):
+def polarity_score_confronto(df, on_update=50):
     stop = stopwords.words('english')
     # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
 
@@ -450,7 +452,6 @@ def polarity_score_confronto(df, on_update = 50):
 
     on_update(65)
 
-
     i = 0
     for sentence in df.cleanedtext:
         line = TextBlob(sentence)
@@ -458,7 +459,7 @@ def polarity_score_confronto(df, on_update = 50):
         # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
     df['polarity'] = sentiment_scores
     normalized_polarity = 2 * (df['polarity'] - df['polarity'].min()) / (
-                df['polarity'].max() - df['polarity'].min()) - 1
+            df['polarity'].max() - df['polarity'].min()) - 1
     normalized_score = 2 * (df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min()) - 1
     sns.distplot(normalized_polarity)
     sns.distplot(normalized_score)
@@ -565,7 +566,7 @@ def reviews_absa(productId, on_update=None):
     text = nltk.Text(wholetext)
     # Calculate Frequency distribution
     freq = nltk.FreqDist(text)
-    metadb = df.shape[0]*0.4
+    metadb = df.shape[0] * 0.4
     # Print and plot most common words
     lenfreq = freq.most_common(20)
     freqword = []
@@ -603,11 +604,11 @@ def reviews_absa(productId, on_update=None):
 
     # Finding out the optimal number of topics
     np.random.seed(50)
-    # lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
-    # max_value = max(c_v)
-    # max_index = c_v.index(max_value)
-    # NUM_TOPICS = max_index + 1
-    NUM_TOPICS = 4
+    lmlist, c_v = evaluate_graph(dictionary=dictionary, corpus=corpus, texts=text_data, limit=10)
+    max_value = max(c_v)
+    max_index = c_v.index(max_value)
+    NUM_TOPICS = max_index + 1
+    # NUM_TOPICS = 4
 
     print("NUM TOPICS: {}".format(NUM_TOPICS))
 
@@ -633,9 +634,9 @@ def reviews_absa(productId, on_update=None):
     # print(ldamodel.print_topic(2, 100))
 
     # Compute Coherence Score using c_v
-    r_list=[]
-    prob_list=[]
-    topic_list=[]
+    r_list = []
+    prob_list = []
+    topic_list = []
     for r in text_data:
         bow = dictionary.doc2bow(r)
         t = ldamodel.get_document_topics(bow)
@@ -644,16 +645,16 @@ def reviews_absa(productId, on_update=None):
         print(t)
         print(maxval)
         print(minval)
-        if(maxval[1]==minval[1]):
+        if (maxval[1] == minval[1]):
             maxval[0] = 0
         else:
-            maxval[0] = maxval[0]+1
+            maxval[0] = maxval[0] + 1
         r_list.append(r)
         prob_list.append(maxval[1])
         topic_list.append(maxval[0])
     on_update(80)
 
-    df_final = pd.DataFrame(data={'review':r_list,'probability':prob_list,'topic_no':topic_list})
+    df_final = pd.DataFrame(data={'review': r_list, 'probability': prob_list, 'topic_no': topic_list})
     # calcolo la polarity del topic
     sentiment_scores = list()
     for topic, words in topics_words:
