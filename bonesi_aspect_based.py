@@ -1,7 +1,7 @@
 from pyLDAvis import sklearn
-
+import re
 from dataset_utils import *
-
+from nltk import sent_tokenize, word_tokenize, pos_tag, ne_chunk
 import gensim
 import matplotlib.pyplot as plt
 import numpy as np
@@ -238,7 +238,14 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
 
     for t in range(NUM_TOPICS):
         ax = plt.subplot(index)
-        wordcloud = WordCloud(width=800, height=400).generate(ldamodel.print_topic(t, 10))
+
+        textentity = ldamodel.show_topic(t, topn=20)
+        # textentity2 = re.findall(r'"([^"]*)"', textentity[t][1])
+        nt = []
+        for a in textentity:
+            nt.append(a[0].replace(" ", "_"))
+
+        wordcloud = WordCloud(width=800, height=400).generate(" ".join(nt))
         ax.imshow(wordcloud, aspect="equal")
         ax.axis("off")
         index += 1
@@ -293,7 +300,7 @@ def classification_train_test(df, on_update=None):
     print(df.PosNeg.value_counts())
     from sklearn.model_selection import train_test_split
 
-    x =10
+    x = 10
 
     y = on_update(x)
 
@@ -308,17 +315,13 @@ def classification_train_test(df, on_update=None):
             if w not in stop:
                 filtered_sentence.append(w)
 
-
-        x = x+0.0003
+        x = x + 0.0003
         on_update(x)
-
 
         # print(word_tokens)
         # print(filtered_sentence)
 
         df.set_value(index, 'cleanedtext', " ".join(filtered_sentence))
-
-
 
     sentiment_scores = list()
     i = 0
@@ -486,7 +489,7 @@ def classification_train_test(df, on_update=None):
     plt.show()
 
 
-def polarity_score_confronto(df, on_update = 50):
+def polarity_score_confronto(df, on_update=50):
     stop = stopwords.words('english')
     # df1 = df["cleanedtext"].str.lower().str.split().combine_first(pd.Series([[]], index=df.index))
 
@@ -510,7 +513,6 @@ def polarity_score_confronto(df, on_update = 50):
     sentiment_scores = list()
 
     on_update(65)
-
 
     i = 0
     for sentence in df.cleanedtext:
@@ -611,7 +613,7 @@ def reviews_absa(productId, on_update=None):
     # B004ZIER34    330
 
     productList = ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
-                   "B001LG945O", "B001LGGH40", "B004ZIER34"]
+                   "B001LG945O", "B001LGGH40", "B004ZIER34" , "B00141UC9I", "B001AJ1ULS" ,"B000KV61FC"]
 
     df = df.loc[df['productid'] == productList[productId]]
 
@@ -641,7 +643,7 @@ def reviews_absa(productId, on_update=None):
     text = nltk.Text(wholetext)
     # Calculate Frequency distribution
     freq = nltk.FreqDist(text)
-    metadb = df.shape[0]*0.4
+    metadb = df.shape[0] * 0.4
     # Print and plot most common words
     lenfreq = freq.most_common(20)
     freqword = []
@@ -709,9 +711,9 @@ def reviews_absa(productId, on_update=None):
     # print(ldamodel.print_topic(2, 100))
 
     # Compute Coherence Score using c_v
-    r_list=[]
-    prob_list=[]
-    topic_list=[]
+    r_list = []
+    prob_list = []
+    topic_list = []
     for r in text_data:
         bow = dictionary.doc2bow(r)
         t = ldamodel.get_document_topics(bow)
@@ -720,10 +722,10 @@ def reviews_absa(productId, on_update=None):
         print(t)
         print(maxval)
         print(minval)
-        if(maxval[1]==minval[1]):
+        if (maxval[1] == minval[1]):
             maxval[0] = 0
         else:
-            maxval[0] = maxval[0]+1
+            maxval[0] = maxval[0] + 1
         r_list.append(r)
         prob_list.append(maxval[1])
         topic_list.append(maxval[0])
@@ -731,21 +733,21 @@ def reviews_absa(productId, on_update=None):
     #TODO SENTIMENT PER TOPIC A DATAFRAME DFFINAL
     on_update(80)
 
-    df_final = pd.DataFrame(data={'review':r_list,'probability':prob_list,'topic_no':topic_list})
+    df_final = pd.DataFrame(data={'review': r_list, 'probability': prob_list, 'topic_no': topic_list})
 
     for current_topic in df_final.topic_no.unique():
 
         text_reviews = [join_bigram(i) for i in df_final.loc[df_final['topic_no'] == current_topic].review]
         sentiment_scores = list()
         for current_topic_reviews in text_reviews:
-            print(current_topic_reviews)
+            # print(current_topic_reviews)
             if (current_topic_reviews != ''):
                 line = TextBlob(current_topic_reviews)
                 sentiment_scores.append(line.sentiment.polarity)
-                print(current_topic_reviews + ": POLARITY=" + str(line.sentiment.polarity))
+                # print(current_topic_reviews + ": POLARITY=" + str(line.sentiment.polarity))
         #TODO per bonesi: qui ci sono le polarity di ogni topic: la prima polarity è quella generale
         print(np.mean(sentiment_scores))
-        print("dsdf")
+        print("Current Topic = {}".format(current_topic))
     # from IPython import embed; embed()
     # text_reviews = [join_bigram(i) for i in df_final.review]
     # calcolo la polarity del topic
