@@ -288,6 +288,9 @@ def plot_confusion_matrix(cm, classes,
 
 def classification_train_test(df, on_update=None):
     stop = stopwords.words('english')
+    print(df.PosNeg.value_counts())
+    df = df[df['PosNeg'] != 'neutral']
+    print(df.PosNeg.value_counts())
     from sklearn.model_selection import train_test_split
 
     x =10
@@ -330,64 +333,134 @@ def classification_train_test(df, on_update=None):
     on_update(30)
 
     df['polarity'] = sentiment_scores
-    df['positive'] = df.PosNeg.apply(lambda x: 1 if x == 'positive' else 0)
-    X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0)
-    # print('X_train first entry: \n\n', X_train.first)
-    print('\n\nX_train shape: ', X_train.shape)
-    from sklearn.model_selection import train_test_split
-    X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0)
-    # print('X_train first entry: \n\n', X_train[0])
-    class_names = df['positive']
-    print('\n\nX_train shape: ', X_train.shape)
-    from sklearn.feature_extraction.text import CountVectorizer
-    vect = CountVectorizer().fit(X_train)
-    vect
-    vect.get_feature_names()[::2000]
 
-    on_update(35)
-
-    len(vect.get_feature_names())
-    X_train_vectorized = vect.transform(X_train)
-    X_train_vectorized
-    X_train_vectorized.toarray()
-    from sklearn.linear_model import LogisticRegression
-    model = LogisticRegression()
-    model.fit(X_train_vectorized, y_train)
+    df['positive'] = df.PosNeg.apply(lambda x: 1 if x == 'negative' else 0)
+    df2 = df.sort_values('positive', ascending=False)
+    df = df2[0:10438]
+    print(df.positive.value_counts())
     from sklearn.metrics import roc_auc_score
-    predictions = model.predict(vect.transform(X_test))
-    from sklearn.metrics import confusion_matrix
-    precision, recall, fscore, support = score(y_test, predictions)
-    accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
-    print("accuracy: " + str(accuracy))
-    print('AUC: ', roc_auc_score(y_test, predictions))
-    conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
-    plt.figure(num=None, figsize=(8, 6), dpi=80)
-    plot_confusion_matrix(
-        conf_mat_a,
-        list(map(str, range(max(y_test)))),
-        normalize=True
-    )
-
-    on_update(40)
-
-    plt.savefig('confusionMatrix.png')
-    plt.show()
-    feature_names = np.array(vect.get_feature_names())
-    sorted_coef_index = model.coef_[0].argsort()
-    print('Smallest Coefs: \n{}\n'.format(feature_names[sorted_coef_index[:10]]))
-    print('Largest Coefs: \n{}\n'.format(feature_names[sorted_coef_index[:-11:-1]]))
+    from sklearn.model_selection import train_test_split
+    from sklearn.linear_model import LogisticRegression
+    from sklearn.feature_extraction.text import CountVectorizer
     from sklearn.feature_extraction.text import TfidfVectorizer
-    vect = TfidfVectorizer(min_df=5).fit(X_train)
-    len(vect.get_feature_names())
-    X_train_vectorized = vect.transform(X_train)
-    model = LogisticRegression()
-    model.fit(X_train_vectorized, y_train)
-    predictions = model.predict(vect.transform(X_test))
-    precision, recall, fscore, support = score(y_test, predictions)
-    accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
-    print("accuracy: " + str(accuracy))
-    print('AUC: ', roc_auc_score(y_test, predictions))
-    conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
+    accuracy_list = list()
+    auc_list = list()
+    precision_list = list()
+    recall_list = list()
+    fscore_list = list()
+    support_list = list()
+    asd = range(5,100,5)
+    myInt = 100
+    newList = [x / myInt for x in asd]
+    for test_size in newList:
+        X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0,
+                                                                shuffle=True, train_size=test_size)
+        # print('X_train first entry: \n\n', X_train.first)
+        print('\n\nX_train shape: ', X_train.shape)
+
+        class_names = df['positive']
+        vect = CountVectorizer().fit(X_train)
+        vect
+        vect.get_feature_names()[::2000]
+
+        on_update(35)
+
+        len(vect.get_feature_names())
+        X_train_vectorized = vect.transform(X_train)
+        X_train_vectorized
+        X_train_vectorized.toarray()
+
+        model = LogisticRegression()
+        model.fit(X_train_vectorized, y_train)
+
+        predictions = model.predict(vect.transform(X_test))
+        from sklearn.metrics import confusion_matrix
+        precision, recall, fscore, support = score(y_test, predictions)
+        accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
+        # print("accuracy: " + str(accuracy))
+        # print('AUC: ', roc_auc_score(y_test, predictions))
+        # conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
+        # plt.figure(num=None, figsize=(8, 6), dpi=80)
+        # plot_confusion_matrix(
+        #     conf_mat_a,
+        #     list(map(str, range(max(y_test)))),
+        #     normalize=True
+        # )
+
+        on_update(40)
+
+
+        feature_names = np.array(vect.get_feature_names())
+        sorted_coef_index = model.coef_[0].argsort()
+        # print('Smallest Coefs: \n{}\n'.format(feature_names[sorted_coef_index[:10]]))
+        # print('Largest Coefs: \n{}\n'.format(feature_names[sorted_coef_index[:-11:-1]]))
+
+        vect = TfidfVectorizer(min_df=5).fit(X_train)
+        len(vect.get_feature_names())
+        X_train_vectorized = vect.transform(X_train)
+        model = LogisticRegression()
+        model.fit(X_train_vectorized, y_train)
+        predictions = model.predict(vect.transform(X_test))
+        precision, recall, fscore, support = score(y_test, predictions)
+        accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
+        # print("accuracy: " + str(accuracy))
+        # print('AUC: ', roc_auc_score(y_test, predictions))
+        # conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
+        # plt.figure(num=None, figsize=(8, 6), dpi=80)
+        # plot_confusion_matrix(
+        #     conf_mat_a,
+        #     list(map(str, range(max(y_test)))),
+        #     normalize=True
+        # )
+        # plt.savefig('confusionMatrix.png')
+        # plt.show()
+        # print('AUC: ', roc_auc_score(y_test, predictions))
+        feature_names = np.array(vect.get_feature_names())
+        sorted_tfidf_index = X_train_vectorized.max(0).toarray()[0].argsort()
+        # print('Smallest Tfidf: \n{}\n'.format(feature_names[sorted_tfidf_index[:10]]))
+        # print('Largest Tfidf: \n{}\n'.format(feature_names[sorted_tfidf_index[:-11:-1]]))
+
+        vect = CountVectorizer(min_df=5, ngram_range=(1, 2)).fit(X_train)
+        X_train_vectorized = vect.transform(X_train)
+        len(vect.get_feature_names())
+        model = LogisticRegression()
+        model.fit(X_train_vectorized, y_train)
+        predictions = model.predict(vect.transform(X_test))
+        precision, recall, fscore, support = score(y_test, predictions)
+        accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
+        accuracy_list.append(accuracy)
+        precision_list.append(precision)
+        recall_list.append(recall)
+        fscore_list.append(fscore)
+        support_list.append(support)
+        auc_list.append(roc_auc_score(y_test, predictions))
+        # print('AUC: ', roc_auc_score(y_test, predictions))
+
+        on_update(45)
+
+        conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
+
+        # plt.savefig('confusionMatrix.png')
+        # plt.show()
+        print('AUC: ', roc_auc_score(y_test, predictions))
+        print("accuracy: " + str(accuracy))
+        feature_names = np.array(vect.get_feature_names())
+        sorted_coef_index = model.coef_[0].argsort()
+        print('Smallest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:10]))
+        print('Largest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:-11:-1]))
+        print("ciao")
+
+
+        on_update(50)
+    plt.legend(['accuracy', 'precision', 'recall', 'fscore','support'], loc='upper left')
+    plt.plot(newList, accuracy_list)
+    plt.grid(True)
+    # plt.plot(newList,auc_list,label="accuracy")
+    # plt.plot(newList,precision_list)
+    # plt.plot(newList,recall_list)
+    # plt.plot(newList,fscore_list)
+    # plt.plot(newList,support_list)
+    plt.show()
     plt.figure(num=None, figsize=(8, 6), dpi=80)
     plot_confusion_matrix(
         conf_mat_a,
@@ -396,42 +469,21 @@ def classification_train_test(df, on_update=None):
     )
     plt.savefig('confusionMatrix.png')
     plt.show()
-    print('AUC: ', roc_auc_score(y_test, predictions))
-    feature_names = np.array(vect.get_feature_names())
-    sorted_tfidf_index = X_train_vectorized.max(0).toarray()[0].argsort()
-    print('Smallest Tfidf: \n{}\n'.format(feature_names[sorted_tfidf_index[:10]]))
-    print('Largest Tfidf: \n{}\n'.format(feature_names[sorted_tfidf_index[:-11:-1]]))
-    vect = CountVectorizer(min_df=5, ngram_range=(1, 2)).fit(X_train)
-    X_train_vectorized = vect.transform(X_train)
-    len(vect.get_feature_names())
-    model = LogisticRegression()
-    model.fit(X_train_vectorized, y_train)
-    predictions = model.predict(vect.transform(X_test))
-    precision, recall, fscore, support = score(y_test, predictions)
-    accuracy = sklearn.metrics.accuracy_score(y_test, predictions, normalize=True, sample_weight=None)
-    print("accuracy: " + str(accuracy))
-    print('AUC: ', roc_auc_score(y_test, predictions))
 
-    on_update(45)
-
-    conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
-    plt.figure(num=None, figsize=(8, 6), dpi=80)
-    plot_confusion_matrix(
-        conf_mat_a,
-        list(map(str, range(max(y_test)))),
-        normalize=True
-    )
-    plt.savefig('confusionMatrix.png')
+    asd = df.loc[df['positive'] == 1]['cleanedtext']
+    wordcloud = WordCloud()
+    wordcloud = WordCloud(stopwords=STOPWORDS,
+                      background_color='black',
+                      width=2500,
+                      height=2000
+                     ).generate(" ".join(feature_names[sorted_coef_index][:-11:-1]))
+    plt.figure(figsize=(10, 10))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    # ax = plt.axes()
+    # ax.set_title('Word Cloud with the Highest Positive/Negative Ratio')
+    plt.savefig('wordcloud_negative.png')
     plt.show()
-    print('AUC: ', roc_auc_score(y_test, predictions))
-    feature_names = np.array(vect.get_feature_names())
-    sorted_coef_index = model.coef_[0].argsort()
-    print('Smallest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:10]))
-    print('Largest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:-11:-1]))
-    print("ciao")
-
-
-    on_update(50)
 
 
 def polarity_score_confronto(df, on_update = 50):
@@ -464,40 +516,50 @@ def polarity_score_confronto(df, on_update = 50):
     for sentence in df.cleanedtext:
         line = TextBlob(sentence)
         sentiment_scores.append(line.sentiment.polarity)
-        # print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
+        print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
     df['polarity'] = sentiment_scores
     normalized_polarity = 2 * (df['polarity'] - df['polarity'].min()) / (
                 df['polarity'].max() - df['polarity'].min()) - 1
     normalized_score = 2 * (df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min()) - 1
-    sns.distplot(normalized_polarity)
-    sns.distplot(normalized_score)
-
+    # sns.distplot(normalized_polarity)
+    # sns.distplot(normalized_score)
+    bins = np.linspace(-1, 1, 50)
+    plt.hist(normalized_polarity, bins, alpha=0.5, label='polarity')
+    plt.hist(normalized_score, bins, alpha=0.5, label='score')
+    plt.legend(loc='upper right')
+    plt.show()
     on_update(70)
 
-    plt.show()
+    # plt.show()
     # PLOT POSITIVE
-    normalized_polarity = df[df['PosNeg'] == 'positive'].polarity
-    normalized_score = (df[df['PosNeg'] == 'positive'].score - df[df['PosNeg'] == 'positive'].score.min()) / (
-            df[df['PosNeg'] == 'positive'].score.max() - df[df['PosNeg'] == 'positive'].score.min()) + 0.5
-    sns.distplot(normalized_polarity, kde=False)
-    sns.distplot(normalized_score, kde=False)
+    # normalized_polarity = df[df['PosNeg'] == 'positive'].polarity
+    # normalized_score = (df[df['PosNeg'] == 'positive'].score - df[df['PosNeg'] == 'positive'].score.min()) / (
+    #         df[df['PosNeg'] == 'positive'].score.max() - df[df['PosNeg'] == 'positive'].score.min()) + 0.5
+    # plt.hist(normalized_polarity, bins, alpha=0.5, label='polarity')
+    # plt.hist(normalized_score, bins, alpha=0.5, label='score')
+    # plt.legend(loc='upper right')
+    # plt.show()
     #
-
-    on_update(80)
-
-    normalized_polarity = df[df['PosNeg'] == 'negative'].polarity
-    normalized_score = (df[df['PosNeg'] == 'negative'].score - df[df['PosNeg'] == 'negative'].score.min()) / (
-            df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min()) - 1
-    sns.distplot(normalized_polarity, kde=False)
-    sns.distplot(normalized_score, kde=False)
-    plt.show()
+    # normalized_polarity = df[df['PosNeg'] == 'negative'].polarity
+    # normalized_score = (df[df['PosNeg'] == 'negative'].score - df[df['PosNeg'] == 'negative'].score.min()) / (
+    #         df[df['PosNeg'] == 'negative'].score.max() - df[df['PosNeg'] == 'negative'].score.min()) - 1
+    # plt.hist(normalized_polarity, bins, alpha=0.5, label='polarity')
+    # plt.hist(normalized_score, bins, alpha=0.5, label='score')
+    #
+    # plt.ylabel('Polarity')
+    # plt.xlabel('Score')
+    # plt.show()
 
     on_update(90)
 
     # TODO FINE parte negativa e positiva, qua sotto correlazione
     print(np.corrcoef(df.score, df.polarity))
+    asd = df.loc[df['score'] == 5]
+    df2 = asd.sort_values('polarity', ascending=False)
     matplotlib.style.use('ggplot')
     plt.scatter(df.score, df.polarity)
+    plt.ylabel('Polarity')
+    plt.xlabel('Score')
     plt.show()
     df.reset_index()
 
@@ -514,6 +576,7 @@ def reviews_sentiment(**parameters):
         df = generate_df()
 
     df = df.dropna()
+
 
     classification_train_test(df, **parameters)
     polarity_score_confronto(df, **parameters)

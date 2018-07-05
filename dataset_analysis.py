@@ -103,15 +103,15 @@ def exploratory_data_analysis(df):
             positive_dict[word] = cnt
 
     #### positive WORDCLOUD #####
-    wordcloud = WordCloud()
-    wordcloud.generate_from_frequencies(frequencies=positive_dict)
-
-    plt.figure(figsize=(10, 10))
-    plt.imshow(wordcloud, interpolation="bilinear")
-    plt.axis("off")
-    ax = plt.axes()
-    ax.set_title('Word Cloud with the Highest Positive/Negative Ratio')
-    plt.show()
+    # wordcloud = WordCloud()
+    # wordcloud.generate_from_frequencies(frequencies=positive_dict)
+    #
+    # plt.figure(figsize=(10, 10))
+    # plt.imshow(wordcloud, interpolation="bilinear")
+    # plt.axis("off")
+    # ax = plt.axes()
+    # ax.set_title('Word Cloud with the Highest Positive/Negative Ratio')
+    # plt.show()
 
     negative_dict = {}
     for word, cnt in pos_neg_ratio.items():
@@ -119,7 +119,9 @@ def exploratory_data_analysis(df):
             negative_dict[word] = -np.log(cnt)
 
     #### negative WORDCLOUD #####
-    wordcloud = WordCloud()
+    wordcloud = WordCloud(background_color='black',
+                              width=2500,
+                              height=2000)
     wordcloud.generate_from_frequencies(frequencies=negative_dict)
     plt.figure(figsize=(10, 10))
     plt.imshow(wordcloud, interpolation="bilinear")
@@ -127,6 +129,7 @@ def exploratory_data_analysis(df):
     ax = plt.axes()
     ax.set_title('Word Cloud with the Lowest Positive/Negative Ratio')
     plt.show()
+
 
     print("END EXPLORATORY ANALYSIS")
 
