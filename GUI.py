@@ -47,7 +47,7 @@ class App(QWidget):
 
         self.radioButton = QRadioButton(self)
         self.radioButton.move(30, 150)
-        self.radioButton.setText("Sentiment Analysis")
+        self.radioButton.setText("Classification and Sentiment Analysis")
         font = QtGui.QFont()
         font.setPointSize(9)
         self.radioButton.setFont(font)
@@ -97,7 +97,7 @@ class App(QWidget):
     # prendo il valore dei radio button
     def on_radio(self, b):
         # imposto il tipo di analisi
-        if b.text() == "Classification & Sentiment Analysis":
+        if b.text() == "Classification and Sentiment Analysis":
             if b.isChecked() == True:
                 self.method = 1
 
