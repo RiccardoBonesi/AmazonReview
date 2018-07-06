@@ -350,6 +350,7 @@ def classification_train_test(df, on_update=None):
     asd = range(5, 100, 5)
     myInt = 100
     newList = [x / myInt for x in asd]
+    on_update(35)
     for test_size in newList:
         X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0,
                                                             shuffle=True, train_size=test_size)
@@ -360,8 +361,6 @@ def classification_train_test(df, on_update=None):
         vect = CountVectorizer().fit(X_train)
         vect
         vect.get_feature_names()[::2000]
-
-        on_update(35)
 
         len(vect.get_feature_names())
         X_train_vectorized = vect.transform(X_train)
@@ -384,8 +383,6 @@ def classification_train_test(df, on_update=None):
         #     list(map(str, range(max(y_test)))),
         #     normalize=True
         # )
-
-        on_update(40)
 
         feature_names = np.array(vect.get_feature_names())
         sorted_coef_index = model.coef_[0].argsort()
@@ -433,7 +430,7 @@ def classification_train_test(df, on_update=None):
         auc_list.append(roc_auc_score(y_test, predictions))
         # print('AUC: ', roc_auc_score(y_test, predictions))
 
-        on_update(45)
+
 
         conf_mat_a = sklearn.metrics.confusion_matrix(y_test, predictions)
 
@@ -447,7 +444,7 @@ def classification_train_test(df, on_update=None):
         print('Largest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:-11:-1]))
         print("ciao")
 
-        on_update(50)
+    on_update(40)
     plt.legend(['accuracy', 'precision', 'recall', 'fscore', 'support'], loc='upper left')
     plt.plot(newList, accuracy_list)
     plt.grid(True)
@@ -465,6 +462,8 @@ def classification_train_test(df, on_update=None):
     )
     plt.savefig('confusionMatrix.png')
     plt.show()
+
+    on_update(45)
 
     asd = df.loc[df['positive'] == 1]['cleanedtext']
     wordcloud = WordCloud()
@@ -495,6 +494,8 @@ def classification_train_test(df, on_update=None):
     # ax.set_title('Word Cloud with the Highest Positive/Negative Ratio')
     plt.savefig('wordcloud_positive.png')
     plt.show()
+
+    on_update(50)
 
 
 def polarity_score_confronto(df, on_update=50):
