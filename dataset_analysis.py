@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 from wordcloud import WordCloud
+
 java_path = "C:/Program Files/Java/jdk1.8.0_161/bin/java.exe"
 os.environ['JAVAHOME'] = java_path
 
@@ -120,8 +121,8 @@ def exploratory_data_analysis(df):
 
     #### negative WORDCLOUD #####
     wordcloud = WordCloud(background_color='black',
-                              width=2500,
-                              height=2000)
+                          width=2500,
+                          height=2000)
     wordcloud.generate_from_frequencies(frequencies=negative_dict)
     plt.figure(figsize=(10, 10))
     plt.imshow(wordcloud, interpolation="bilinear")
@@ -129,7 +130,6 @@ def exploratory_data_analysis(df):
     ax = plt.axes()
     ax.set_title('Word Cloud with the Lowest Positive/Negative Ratio')
     plt.show()
-
 
     print("END EXPLORATORY ANALYSIS")
 
@@ -191,9 +191,7 @@ if __name__ == "__main__":
 
     # recensioni negative
     df = df.loc[df['score'] == (1 or 2)]
-    df = df.groupby('productid').agg(['mean','count'])
-
-
+    df = df.groupby('productid').agg(['mean', 'count'])
 
     print("ciao")
 
@@ -202,8 +200,6 @@ if __name__ == "__main__":
     asd3 = asd.merge(asd2.to_frame(), left_on='productid', right_index=True)
     asd4 = asd3.sort_values('score')
     df1 = df.loc[df['productid'] == "B001E96JY2"]
-
-
 
     # df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
     exploratory_data_analysis(df)

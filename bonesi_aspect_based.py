@@ -23,7 +23,6 @@ import os
 from sklearn.metrics import precision_recall_fscore_support as score
 import itertools
 
-
 import sklearn
 import sklearn.metrics
 from sklearn import svm, datasets
@@ -44,13 +43,10 @@ from wordcloud import WordCloud
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from sklearn.model_selection import train_test_split
-from wordcloud import WordCloud,STOPWORDS
+from wordcloud import WordCloud, STOPWORDS
 import matplotlib
 
 from nltk.stem.wordnet import WordNetLemmatizer
-
-
-
 
 warnings.filterwarnings(action='ignore', category=UserWarning, module='gensim')
 
@@ -106,6 +102,7 @@ def prepare_text_for_lda(text):
 
 def join_bigram(l):
     return " ".join([i.split()[0] for i in l])
+
 
 def evaluate_graph(dictionary, corpus, texts, limit):
     """
@@ -255,7 +252,6 @@ def generate_topic_wordclouds(NUM_TOPICS, ldamodel, productId, productList):
     plt.show()
 
 
-
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
                           title='Confusion matrix',
@@ -290,7 +286,6 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     plt.show()
-
 
 
 def classification_train_test(df, on_update=None):
@@ -352,12 +347,12 @@ def classification_train_test(df, on_update=None):
     recall_list = list()
     fscore_list = list()
     support_list = list()
-    asd = range(5,100,5)
+    asd = range(5, 100, 5)
     myInt = 100
     newList = [x / myInt for x in asd]
     for test_size in newList:
         X_train, X_test, y_train, y_test = train_test_split(df['cleanedtext'], df['positive'], random_state=0,
-                                                                shuffle=True, train_size=test_size)
+                                                            shuffle=True, train_size=test_size)
         # print('X_train first entry: \n\n', X_train.first)
         print('\n\nX_train shape: ', X_train.shape)
 
@@ -391,7 +386,6 @@ def classification_train_test(df, on_update=None):
         # )
 
         on_update(40)
-
 
         feature_names = np.array(vect.get_feature_names())
         sorted_coef_index = model.coef_[0].argsort()
@@ -453,9 +447,8 @@ def classification_train_test(df, on_update=None):
         print('Largest Coef: \n{}\n'.format(feature_names[sorted_coef_index][:-11:-1]))
         print("ciao")
 
-
         on_update(50)
-    plt.legend(['accuracy', 'precision', 'recall', 'fscore','support'], loc='upper left')
+    plt.legend(['accuracy', 'precision', 'recall', 'fscore', 'support'], loc='upper left')
     plt.plot(newList, accuracy_list)
     plt.grid(True)
     # plt.plot(newList,auc_list,label="accuracy")
@@ -476,16 +469,31 @@ def classification_train_test(df, on_update=None):
     asd = df.loc[df['positive'] == 1]['cleanedtext']
     wordcloud = WordCloud()
     wordcloud = WordCloud(stopwords=STOPWORDS,
-                      background_color='black',
-                      width=2500,
-                      height=2000
-                     ).generate(" ".join(feature_names[sorted_coef_index][:-11:-1]))
+                          background_color='black',
+                          width=2500,
+                          height=2000
+                          ).generate(" ".join(feature_names[sorted_coef_index][:-11:-1]))
     plt.figure(figsize=(10, 10))
     plt.imshow(wordcloud, interpolation="bilinear")
     plt.axis("off")
     # ax = plt.axes()
     # ax.set_title('Word Cloud with the Highest Positive/Negative Ratio')
     plt.savefig('wordcloud_negative.png')
+    plt.show()
+
+    asd = df.loc[df['positive'] == 0]['cleanedtext']
+    wordcloud = WordCloud()
+    wordcloud = WordCloud(stopwords=STOPWORDS,
+                          background_color='white',
+                          width=2500,
+                          height=2000
+                          ).generate(" ".join(feature_names[sorted_coef_index][:-11:-1]))
+    plt.figure(figsize=(10, 10))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")
+    # ax = plt.axes()
+    # ax.set_title('Word Cloud with the Highest Positive/Negative Ratio')
+    plt.savefig('wordcloud_positive.png')
     plt.show()
 
 
@@ -521,7 +529,7 @@ def polarity_score_confronto(df, on_update=50):
         print(sentence + ": POLARITY=" + str(line.sentiment.polarity))
     df['polarity'] = sentiment_scores
     normalized_polarity = 2 * (df['polarity'] - df['polarity'].min()) / (
-                df['polarity'].max() - df['polarity'].min()) - 1
+            df['polarity'].max() - df['polarity'].min()) - 1
     normalized_score = 2 * (df['score'] - df['score'].min()) / (df['score'].max() - df['score'].min()) - 1
     # sns.distplot(normalized_polarity)
     # sns.distplot(normalized_score)
@@ -570,7 +578,6 @@ def polarity_score_confronto(df, on_update=50):
     return stop
 
 
-
 def reviews_sentiment(**parameters):
     try:
         df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
@@ -579,17 +586,11 @@ def reviews_sentiment(**parameters):
 
     df = df.dropna()
 
-
     classification_train_test(df, **parameters)
     polarity_score_confronto(df, **parameters)
 
 
-
-
-
 def reviews_absa(productId, on_update=None):
-    # https://towardsdatascience.com/topic-modelling-in-python-with-nltk-and-gensim-4ef03213cd21
-
     # provo ad importare il df o lo genero
     try:
         df = pd.read_csv("cleanedTextCSV.csv", sep="\t", encoding='latin-1')
@@ -613,7 +614,7 @@ def reviews_absa(productId, on_update=None):
     # B004ZIER34    330
 
     productList = ["B002QWP89S", "B007M83302", "B0013NUGDE", "B000KV61FC", "B000PDY3P0", "B006N3IG4K", "B003VXFK44",
-                   "B001LG945O", "B001LGGH40", "B004ZIER34" , "B00141UC9I", "B001AJ1ULS" ,"B000KV61FC"]
+                   "B001LG945O", "B001LGGH40", "B004ZIER34", "B00141UC9I", "B001AJ1ULS", "B000KV61FC"]
 
     df = df.loc[df['productid'] == productList[productId]]
 
@@ -730,7 +731,7 @@ def reviews_absa(productId, on_update=None):
         prob_list.append(maxval[1])
         topic_list.append(maxval[0])
 
-    #TODO SENTIMENT PER TOPIC A DATAFRAME DFFINAL
+    # TODO SENTIMENT PER TOPIC A DATAFRAME DFFINAL
     on_update(80)
 
     df_final = pd.DataFrame(data={'review': r_list, 'probability': prob_list, 'topic_no': topic_list})
@@ -745,7 +746,7 @@ def reviews_absa(productId, on_update=None):
                 line = TextBlob(current_topic_reviews)
                 sentiment_scores.append(line.sentiment.polarity)
                 # print(current_topic_reviews + ": POLARITY=" + str(line.sentiment.polarity))
-        #TODO per bonesi: qui ci sono le polarity di ogni topic: la prima polarity è quella generale
+        # TODO per bonesi: qui ci sono le polarity di ogni topic: la prima polarity è quella generale
         print(np.mean(sentiment_scores))
         print("Current Topic = {}".format(current_topic))
     # from IPython import embed; embed()
