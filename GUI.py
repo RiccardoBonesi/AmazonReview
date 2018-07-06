@@ -1,7 +1,7 @@
 from PyQt5 import QtGui, QtCore, QtWidgets
 from PyQt5.QtCore import pyqtSlot
 
-from bonesi_aspect_based import reviews_absa, reviews_sentiment
+from food_reviews import reviews_absa, reviews_sentiment
 import sys
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QApplication

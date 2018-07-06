@@ -175,6 +175,6 @@ def generate_df():
     df['polarity'] = sentiment_scores
 
     # sns.distplot(df['polarity'])
-    df.to_csv("cleanedTextCSV.csv", sep='\t', encoding='utf-8')
+    df.to_csv("Dataset\cleanedTextCSV.csv", sep='\t', encoding='utf-8')
 
     return df
